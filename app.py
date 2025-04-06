@@ -16,25 +16,23 @@ current_time = datetime.datetime.now(ist)
 seconds = current_time.second
 remaining = 60 - seconds
 
-# Session state for period tracking
+# Session state initialization
 if "history" not in st.session_state:
-    st.session_state.history = []  # Format: [{"period": 72653, "result": "Big"}]
+    st.session_state.history = []
 if "current_period" not in st.session_state:
     st.session_state.current_period = None
 
-# Input for last 3 period numbers
-with st.expander("🔢 Enter Last 3 Period Numbers (Only Digits)"):
-    period1 = st.text_input("Period 1", placeholder="e.g. 72651")
-    period2 = st.text_input("Period 2", placeholder="e.g. 72652")
-    period3 = st.text_input("Period 3 (Latest)", placeholder="e.g. 72653")
+# Last 3 digits input
+with st.expander("🔢 Enter Last 3 Digits of Period Number (e.g. 101)"):
+    last_3 = st.text_input("Enter Last 3 Digits", placeholder="e.g. 101")
 
-    if period3.isdigit():
-        st.session_state.current_period = int(period3)
+    if last_3.isdigit() and 0 <= int(last_3) <= 999:
+        st.session_state.current_period = int(last_3)
 
-if st.session_state.current_period:
-    st.markdown(f"### 📌 Starting From Period: `{st.session_state.current_period + 1}`")
+if st.session_state.current_period is not None:
+    st.markdown(f"### 📌 Starting From: `{st.session_state.current_period}` (will go down)")
 
-# Display global time
+# Time display
 st.subheader(f"🕒 India Time: `{current_time.strftime('%H:%M:%S')}`")
 st.subheader(f"⏳ Next Round In: `{remaining}` seconds")
 
@@ -43,11 +41,11 @@ col1, col2, col3 = st.columns([1, 1, 2])
 
 def add_result(result):
     if st.session_state.current_period is not None:
-        st.session_state.current_period += 1
         st.session_state.history.append({
             "period": st.session_state.current_period,
             "result": result
         })
+        st.session_state.current_period -= 1
         st.rerun()
 
 with col1:
@@ -64,7 +62,7 @@ with col3:
         st.session_state.current_period = None
         st.session_state._rerun_flag = True
 
-# Count tracker
+# Pattern tracker
 count = len(st.session_state.history)
 st.info(f"🧾 You’ve entered `{count}` / 50 patterns")
 
@@ -83,13 +81,13 @@ def predict_next_pattern(history):
     confidence = int((pattern_counts[prediction] / sum(pattern_counts.values())) * 100)
     return prediction, confidence
 
-# Prediction block
+# Prediction
 if count >= 50:
     st.markdown("## 🧠 Prediction Mode")
     prediction, confidence = predict_next_pattern(st.session_state.history)
     st.success(f"🔮 Predicted: `{prediction}` ({confidence}% confidence)")
 
-# History section
+# Show history
 if st.session_state.history:
     st.markdown("## 📚 History Data (latest at top)")
 
@@ -111,7 +109,7 @@ if st.session_state.history:
     ax.axis("equal")
     st.pyplot(fig)
 
-# Reset rerun trigger
+# Safe rerun on reset
 if st.session_state.get("_rerun_flag", False):
     st.session_state._rerun_flag = False
     st.experimental_rerun()
