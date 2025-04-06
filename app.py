@@ -10,7 +10,7 @@ st.set_page_config(page_title="Frizo Predictor", layout="centered")
 st.title("🎯 Frizo Predictor")
 st.markdown("### 👇 Enter 50 rounds of results to unlock Prediction Mode")
 
-# India Standard Time (IST)
+# Time config (India Standard Time)
 ist = pytz.timezone("Asia/Kolkata")
 current_time = datetime.datetime.now(ist)
 seconds = current_time.second
@@ -21,11 +21,12 @@ if "history" not in st.session_state:
     st.session_state.history = []
 if "current_period" not in st.session_state:
     st.session_state.current_period = None
+if "pending_result" not in st.session_state:
+    st.session_state.pending_result = None
 
-# Input: Only 3 digits of last period number
+# Input for 3-digit period code
 with st.expander("🔢 Enter Last 3 Digits of Period Number (e.g. 101)"):
     last_3 = st.text_input("Enter Last 3 Digits", placeholder="e.g. 101")
-
     if last_3.isdigit() and 0 <= int(last_3) <= 999:
         st.session_state.current_period = int(last_3)
 
@@ -36,38 +37,43 @@ if st.session_state.current_period is not None:
 st.subheader(f"🕒 India Time: `{current_time.strftime('%H:%M:%S')}`")
 st.subheader(f"⏳ Next Round In: `{remaining}` seconds")
 
-# Button actions
+# --- Input buttons ---
 col1, col2, col3 = st.columns([1, 1, 2])
 
-def add_result(result):
+def set_pending_result(result):
     if st.session_state.current_period is not None:
-        current = st.session_state.current_period
-        st.session_state.history.append({
-            "period": current,
+        st.session_state.pending_result = {
+            "period": st.session_state.current_period,
             "result": result
-        })
-        st.session_state.current_period -= 1  # Decrease BEFORE rerun
+        }
+        st.session_state.current_period -= 1  # Decrement period number
         st.rerun()
 
 with col1:
     if st.button("🔴 BIG"):
-        add_result("Big")
+        set_pending_result("Big")
 
 with col2:
     if st.button("🔵 SMALL"):
-        add_result("Small")
+        set_pending_result("Small")
 
 with col3:
     if st.button("🧹 Reset History"):
         st.session_state.history = []
         st.session_state.current_period = None
-        st.session_state._rerun_flag = True
+        st.session_state.pending_result = None
+        st.rerun()
 
-# Track pattern entry count
+# Add pending result after rerun
+if st.session_state.pending_result:
+    st.session_state.history.append(st.session_state.pending_result)
+    st.session_state.pending_result = None
+
+# Count and prompt
 count = len(st.session_state.history)
 st.info(f"🧾 You’ve entered `{count}` / 50 patterns")
 
-# Prediction logic
+# --- Prediction logic ---
 def predict_next_pattern(history):
     values = [h["result"] for h in history]
     recent = values[-5:]
@@ -82,13 +88,13 @@ def predict_next_pattern(history):
     confidence = int((pattern_counts[prediction] / sum(pattern_counts.values())) * 100)
     return prediction, confidence
 
-# Show prediction if enough data
+# Show prediction
 if count >= 50:
     st.markdown("## 🧠 Prediction Mode")
     prediction, confidence = predict_next_pattern(st.session_state.history)
     st.success(f"🔮 Predicted: `{prediction}` ({confidence}% confidence)")
 
-# Show history
+# --- Show History ---
 if st.session_state.history:
     st.markdown("## 📚 History Data (latest at top)")
 
@@ -102,19 +108,14 @@ if st.session_state.history:
 
     st.dataframe(table_data, use_container_width=True)
 
-    # Pie chart visualization
+    # Pie Chart
     fig, ax = plt.subplots()
-    all_results = [entry["result"] for entry in st.session_state.history]
-    counts = [all_results.count("Big"), all_results.count("Small")]
+    results = [entry["result"] for entry in st.session_state.history]
+    counts = [results.count("Big"), results.count("Small")]
     ax.pie(counts, labels=["Big", "Small"], autopct="%1.1f%%", startangle=90, colors=["red", "blue"])
     ax.axis("equal")
     st.pyplot(fig)
 
-# Reset trigger
-if st.session_state.get("_rerun_flag", False):
-    st.session_state._rerun_flag = False
-    st.experimental_rerun()
-
-# Auto refresh every second
+# Auto-refresh every second
 time.sleep(1)
 st.rerun()
