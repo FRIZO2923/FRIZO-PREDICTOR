@@ -1,149 +1,94 @@
 import streamlit as st
-import datetime
-import pytz
 import pandas as pd
 import matplotlib.pyplot as plt
+from datetime import datetime
+from pytz import timezone
 from streamlit_autorefresh import st_autorefresh
 
-# 🔄 Auto-refresh every second (1000 ms)
-st_autorefresh(interval=1000, key="refresh")
-
-# 📋 Setup page
 st.set_page_config(page_title="Frizo Predictor", layout="centered")
-st.title("🎯 Frizo Predictor")
-st.markdown("### 👇 Enter 50 rounds of results to unlock Prediction Mode")
 
-# 🕒 Indian Standard Time
-ist = pytz.timezone("Asia/Kolkata")
-now = datetime.datetime.now(ist)
-seconds_left = 60 - now.second
-st.subheader(f"🕒 IST: `{now.strftime('%H:%M:%S')}`")
-st.subheader(f"⏳ Next Round In: `{seconds_left}` seconds")
+# Auto refresh every 1 second
+st_autorefresh(interval=1000, key="auto_refresh")
 
-# 🧠 Session State Initialization
+# Initialize session state
 if "history" not in st.session_state:
     st.session_state.history = []
+if "latest_period" not in st.session_state:
+    st.session_state.latest_period = None
+if "prediction_feedback" not in st.session_state:
+    st.session_state.prediction_feedback = []
 
-if "current_period" not in st.session_state:
-    st.session_state.current_period = None
+st.title("🎯 Frizo Predictor")
 
-if "last_prediction" not in st.session_state:
-    st.session_state.last_prediction = None
+# Get current IST time
+ist = timezone('Asia/Kolkata')
+current_time = datetime.now(ist)
+seconds = current_time.second
 
-if "prediction_stats" not in st.session_state:
-    st.session_state.prediction_stats = {"correct": 0, "total": 0}
+# Input for last 3 digits of current period number
+period_input = st.text_input("🔢 Enter last 3 digits of the current period number (e.g., 101 from 56231235101):", max_chars=3)
 
-if "wrong_streak" not in st.session_state:
-    st.session_state.wrong_streak = 0
+if period_input.isdigit() and len(period_input) == 3:
+    st.session_state.latest_period = int(period_input)
+    st.experimental_rerun()
 
-# 🔢 Period Input Block
-with st.expander("🔢 Enter Last 3 Digits of Current Period"):
-    last_digits = st.text_input("Only digits", max_chars=3, placeholder="e.g. 101")
-    if last_digits.isdigit():
-        st.session_state.current_period = int(last_digits)
+if st.session_state.latest_period is None:
+    st.warning("⚠️ Please enter the last 3 digits of the period number to start.")
+    st.stop()
 
-# Show current period
-if st.session_state.current_period is not None:
-    st.markdown(f"### 📌 Current Base Period: `{st.session_state.current_period}`")
-
-# ➕ Add BIG/SMALL result
-def add_result(result):
-    if st.session_state.current_period is not None:
-        period = st.session_state.current_period
-        st.session_state.history.append({
-            "period": period,
-            "result": result
-        })
-
-        # Accuracy stats
-        if st.session_state.last_prediction:
-            predicted = st.session_state.last_prediction["value"]
-            if predicted == result:
-                st.session_state.prediction_stats["correct"] += 1
-                st.session_state.wrong_streak = 0
-            else:
-                st.session_state.wrong_streak += 1
-            st.session_state.prediction_stats["total"] += 1
-
-        # Move to next period (descending)
-        st.session_state.current_period -= 1
-        st.session_state.last_prediction = None
-
-# 🔮 Prediction logic
-def predict(history):
-    values = [entry["result"] for entry in history]
-    if len(values) < 5:
-        return None, 0
-    recent = values[-5:]
-    pattern_counts = {"Big": 0, "Small": 0}
-    for i in range(len(values) - 5):
-        if values[i:i+5] == recent:
-            next_val = values[i+5]
-            pattern_counts[next_val] += 1
-    total = sum(pattern_counts.values())
-    if total == 0:
-        return None, 0
-    best = max(pattern_counts, key=pattern_counts.get)
-    confidence = int((pattern_counts[best] / total) * 100)
-    return best, confidence
-
-# 🎮 Controls
+# Buttons to add outcomes
 col1, col2, col3 = st.columns([1, 1, 2])
 with col1:
-    if st.button("🔴 BIG"):
-        add_result("Big")
+    if st.button("🟢 Big"):
+        period = st.session_state.latest_period - len(st.session_state.history)
+        st.session_state.history.append((period, "Big"))
+        st.experimental_rerun()
 with col2:
-    if st.button("🔵 SMALL"):
-        add_result("Small")
+    if st.button("🔴 Small"):
+        period = st.session_state.latest_period - len(st.session_state.history)
+        st.session_state.history.append((period, "Small"))
+        st.experimental_rerun()
 with col3:
     if st.button("🧹 Reset History"):
-        st.session_state.history = []
-        st.session_state.current_period = None
-        st.session_state.last_prediction = None
-        st.session_state.prediction_stats = {"correct": 0, "total": 0}
-        st.session_state.wrong_streak = 0
+        st.session_state.history.clear()
+        st.session_state.prediction_feedback.clear()
+        st.experimental_rerun()
 
-# ✅ Entry Count
-count = len(st.session_state.history)
-st.info(f"✅ Entries: `{count}` / 50")
+# Display timer
+st.markdown(f"⏳ **Next Round In:** `{60 - seconds}` seconds")
 
-# 🔮 Prediction
-if count >= 50:
-    st.markdown("## 🔮 Prediction")
-    pred, conf = predict(st.session_state.history)
-    if pred:
-        st.success(f"📌 Predicted Next: `{pred}` with `{conf}%` confidence")
-        st.session_state.last_prediction = {"value": pred, "confidence": conf}
-    else:
-        st.warning("⚠️ Not enough data")
+# Prediction
+if len(st.session_state.history) >= 50:
+    last_50 = [entry[1] for entry in st.session_state.history[-50:]]
+    big_count = last_50.count("Big")
+    small_count = last_50.count("Small")
 
-    # 🎯 Accuracy stats
-    correct = st.session_state.prediction_stats["correct"]
-    total = st.session_state.prediction_stats["total"]
+    prediction = "Big" if big_count > small_count else "Small"
+    st.markdown(f"📈 **Predicted Next Outcome:** `{prediction}`")
+
+    # Feedback buttons
+    col4, col5 = st.columns(2)
+    with col4:
+        if st.button("✅ Prediction Correct"):
+            st.session_state.prediction_feedback.append("Correct")
+            st.experimental_rerun()
+    with col5:
+        if st.button("❌ Prediction Wrong"):
+            st.session_state.prediction_feedback.append("Wrong")
+            st.experimental_rerun()
+
+    # Accuracy stats
+    correct = st.session_state.prediction_feedback.count("Correct")
+    total = len(st.session_state.prediction_feedback)
     if total > 0:
-        acc = int((correct / total) * 100)
-        st.markdown(f"🎯 Accuracy: `{correct}` / `{total}` → **{acc}%**")
-        if st.session_state.wrong_streak >= 3:
-            st.error("⚠️ Trend Reversal Suspected")
+        accuracy = (correct / total) * 100
+        st.markdown(f"🎯 **Prediction Accuracy:** `{accuracy:.2f}%` ({correct}/{total})")
 
-# 📚 History Data
+# Display history
 if st.session_state.history:
-    st.markdown("## 📚 History Data (Latest on Top)")
-    history_df = pd.DataFrame(reversed(st.session_state.history))
-    history_df.index = range(1, len(history_df)+1)
-    history_df.index.name = "Sr. No."
-    history_df = history_df.rename(columns={"period": "Period No.", "result": "Result"})
-    st.dataframe(history_df, use_container_width=True)
-
-    # 📊 Pie Chart
-    results = [entry["result"] for entry in st.session_state.history]
-    fig, ax = plt.subplots()
-    ax.pie(
-        [results.count("Big"), results.count("Small")],
-        labels=["Big", "Small"],
-        autopct="%1.1f%%",
-        colors=["red", "blue"],
-        startangle=90
-    )
-    ax.axis("equal")
-    st.pyplot(fig)
+    df = pd.DataFrame(st.session_state.history, columns=["Period", "Result"])
+    df_sorted = df.sort_values(by="Period", ascending=False).reset_index(drop=True)
+    st.subheader("📊 History Data")
+    st.dataframe(df_sorted, use_container_width=True)
+else:
+    st.info("📭 No history data available.")
