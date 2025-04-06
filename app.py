@@ -3,7 +3,7 @@ import datetime
 import pytz
 import matplotlib.pyplot as plt
 
-# Configure page
+# Set page config
 st.set_page_config(page_title="Frizo Predictor", layout="centered")
 st.title("🎯 Frizo Predictor")
 st.markdown("### 👇 Enter 50 rounds of results to unlock Prediction Mode")
@@ -27,7 +27,7 @@ if "prediction_stats" not in st.session_state:
 if "wrong_streak" not in st.session_state:
     st.session_state.wrong_streak = 0
 
-# Enter last 3 digits of period number
+# Get period number (last 3 digits)
 with st.expander("🔢 Enter Last 3 Digits of Period Number (e.g. 101)"):
     last_digits = st.text_input("Only digits", max_chars=3, placeholder="e.g. 101")
     if last_digits.isdigit():
@@ -36,7 +36,7 @@ with st.expander("🔢 Enter Last 3 Digits of Period Number (e.g. 101)"):
 if st.session_state.current_period is not None:
     st.markdown(f"### 📌 Starting From Period: `{st.session_state.current_period}`")
 
-# Prediction logic
+# Predict function
 def predict(history):
     values = [entry["result"] for entry in history]
     if len(values) < 5:
@@ -54,17 +54,15 @@ def predict(history):
     confidence = int((pattern_counts[best] / total_matches) * 100)
     return best, confidence
 
-# Store result
+# Add result
 def add_result(result):
     if st.session_state.current_period is not None:
         st.session_state.history.append({
             "period": st.session_state.current_period,
             "result": result
         })
-        # Handle prediction check
         if st.session_state.last_prediction:
-            predicted = st.session_state.last_prediction["value"]
-            if predicted == result:
+            if st.session_state.last_prediction["value"] == result:
                 st.session_state.prediction_stats["correct"] += 1
                 st.session_state.wrong_streak = 0
             else:
@@ -73,8 +71,8 @@ def add_result(result):
         st.session_state.current_period -= 1
         st.session_state.last_prediction = None
 
-# Buttons
-col1, col2, col3 = st.columns([1,1,2])
+# Add buttons
+col1, col2, col3 = st.columns([1, 1, 2])
 with col1:
     if st.button("🔴 BIG"):
         add_result("Big")
@@ -89,11 +87,11 @@ with col3:
         st.session_state.prediction_stats = {"correct": 0, "total": 0}
         st.session_state.wrong_streak = 0
 
-# Progress
+# Show progress
 count = len(st.session_state.history)
 st.info(f"✅ Data Entered: `{count}` / 50")
 
-# Prediction Section
+# Prediction after 50+
 if count >= 50:
     st.markdown("## 🔮 Prediction")
     pred, conf = predict(st.session_state.history)
@@ -103,34 +101,33 @@ if count >= 50:
     else:
         st.warning("⚠️ Not enough pattern data for prediction")
 
-    # Accuracy Display
     correct = st.session_state.prediction_stats["correct"]
     total = st.session_state.prediction_stats["total"]
     if total > 0:
         acc = int((correct / total) * 100)
-        st.markdown(f"🎯 Accuracy: `{correct}` out of `{total}` → **{acc}%**")
+        st.markdown(f"🎯 Accuracy: `{correct}` / `{total}` → **{acc}%**")
         if st.session_state.wrong_streak >= 3:
-            st.error("⚠️ Warning: Possible Trend Reversal Detected!")
+            st.error("⚠️ Trend Reversal Possible!")
 
-# History Data
+# Show history
 if st.session_state.history:
     st.markdown("## 📚 History Data (Latest on Top)")
-    display_data = []
-    for idx, entry in enumerate(reversed(st.session_state.history), 1):
-        display_data.append({
-            "Sr. No.": idx,
+    history_table = []
+    for i, entry in enumerate(reversed(st.session_state.history), start=1):
+        history_table.append({
+            "Sr. No.": i,
             "Period No.": entry["period"],
             "Result": entry["result"]
         })
-    st.dataframe(display_data, use_container_width=True)
+    st.dataframe(history_table, use_container_width=True)
 
-    # Pie Chart
+    # Pie chart
     fig, ax = plt.subplots()
-    all_results = [h["result"] for h in st.session_state.history]
-    counts = [all_results.count("Big"), all_results.count("Small")]
+    results = [x["result"] for x in st.session_state.history]
+    counts = [results.count("Big"), results.count("Small")]
     ax.pie(counts, labels=["Big", "Small"], autopct="%1.1f%%", startangle=90, colors=["red", "blue"])
     ax.axis("equal")
     st.pyplot(fig)
 
-# Manual refresh button
-st.button("🔄 Refresh Timer", on_click=lambda: st.rerun())
+# Refresh manually
+st.button("🔄 Refresh Timer", on_click=st.experimental_rerun)
