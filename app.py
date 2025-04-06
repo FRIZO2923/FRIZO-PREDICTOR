@@ -209,3 +209,18 @@ st.markdown(
     "<hr style='margin-top: 50px;'><p style='text-align: center; font-size: 18px;'>🚀 Created by <strong>Frizo</strong></p>",
     unsafe_allow_html=True
 )
+
+# Footer - Credit and YouTube Link
+st.markdown(
+    """
+    <hr style='margin-top: 50px;'>
+    <div style='text-align: center; font-size: 18px;'>
+        🚀 Created by <strong>Frizo</strong><br>
+        🎥 Watch on 
+        <a href='https://www.youtube.com/@FrizoClips' target='_blank' style='text-decoration: none; color: red; font-weight: bold;'>
+            YouTube @FrizoClips
+        </a>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
