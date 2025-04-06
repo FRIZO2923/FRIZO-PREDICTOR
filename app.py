@@ -19,20 +19,29 @@ remaining = max(0, TIMER_DURATION - int(elapsed))
 
 st.subheader(f"⏳ Next Round In: `{remaining}` seconds")
 
-# Buttons to log results (always visible)
-col1, col2, col3 = st.columns([1, 1, 2])
+# Buttons to log results
+col1, col2, col3, col4 = st.columns([1, 1, 2, 2])
+
 with col1:
     if st.button("🔴 BIG"):
         st.session_state.history.append("Big")
         st.session_state.start_time = time.time()
         st.rerun()
+
 with col2:
     if st.button("🔵 SMALL"):
         st.session_state.history.append("Small")
         st.session_state.start_time = time.time()
         st.rerun()
+
 with col3:
     if st.button("🔁 Restart Timer Only"):
+        st.session_state.start_time = time.time()
+        st.rerun()
+
+with col4:
+    if st.button("🔄 Restart Data"):
+        st.session_state.history = []
         st.session_state.start_time = time.time()
         st.rerun()
 
