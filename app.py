@@ -5,17 +5,17 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import threading
 import time
-
-# Setup page (must be first command)
-st.set_page_config(page_title="Frizo Predictor", layout="centered")
-
-st.title("🎯 FRIZO Predictor")
-
-
-
-# 🔁 Referral Popup
 import random
 
+# Setup page
+st.set_page_config(page_title="Frizo Predictor", layout="centered")
+
+# Title - centered and styled
+st.markdown("""
+    <h1 style='text-align: center; font-size: 48px; font-weight: bold;'>🎯 FRIZO Predictor</h1>
+""", unsafe_allow_html=True)
+
+# 🔁 Referral Popup
 if "show_referral_message" not in st.session_state:
     st.session_state.show_referral_message = True
 
@@ -50,69 +50,55 @@ st.subheader(f"⏳ Next Round In: `{seconds_left}` seconds")
 # Timer placeholder
 timer_placeholder = st.empty()
 
-# Session variable to track the time
 if "timer_seconds" not in st.session_state:
-    st.session_state.timer_seconds = 60 - now.second  # Initialize the timer to seconds left in the current minute
+    st.session_state.timer_seconds = 60 - now.second
 
-# Countdown timer function synchronized with IST
 def countdown_timer():
     while True:
-        now = datetime.datetime.now(ist)  # Get current IST time
-        st.session_state.timer_seconds = 60 - now.second  # Update timer to remaining seconds in the minute
-        time.sleep(1)  # Wait for 1 second before updating the timer
+        now = datetime.datetime.now(ist)
+        st.session_state.timer_seconds = 60 - now.second
+        time.sleep(1)
 
-# Start the countdown timer in a separate thread
 if "timer_thread" not in st.session_state:
     st.session_state.timer_thread = threading.Thread(target=countdown_timer, daemon=True)
     st.session_state.timer_thread.start()
 
-# Function to manually refresh the timer
 def refresh_timer():
     now = datetime.datetime.now(ist)
-    st.session_state.timer_seconds = 60 - now.second  # Reset the timer to the current seconds left in the minute
+    st.session_state.timer_seconds = 60 - now.second
 
-# Timer Display with Manual Refresh Button
 col1, col2 = st.columns([4, 1])
 with col1:
     timer_placeholder.text(f"🕐 60-Second Timer: `{st.session_state.timer_seconds}` seconds remaining")
 with col2:
     if st.button("🔄 Refresh Timer"):
-        refresh_timer()  # Refresh the timer manually
+        refresh_timer()
 
-# Session variables for results and prediction logic
+# Session variables
 if "history" not in st.session_state:
     st.session_state.history = []
-
 if "current_period" not in st.session_state:
     st.session_state.current_period = None
-
 if "last_prediction" not in st.session_state:
     st.session_state.last_prediction = None
-
 if "prediction_stats" not in st.session_state:
     st.session_state.prediction_stats = {"correct": 0, "total": 0}
-
 if "wrong_streak" not in st.session_state:
     st.session_state.wrong_streak = 0
 
-# Input starting period
+# Input current period
 with st.expander("🔢 Enter Last 3 Digits of Current Period"):
     last_digits = st.text_input("Only digits", max_chars=3, placeholder="e.g. 101")
     if last_digits.isdigit():
         st.session_state.current_period = int(last_digits)
 
-# Show current base period
 if st.session_state.current_period is not None:
     st.markdown(f"### 📌 Current Base Period: `{st.session_state.current_period}`")
 
-# Add result logic
 def add_result(result):
     if st.session_state.current_period is not None:
         period = st.session_state.current_period
-        st.session_state.history.append({
-            "period": period,
-            "result": result
-        })
+        st.session_state.history.append({"period": period, "result": result})
 
         if st.session_state.last_prediction:
             predicted = st.session_state.last_prediction["value"]
@@ -126,7 +112,6 @@ def add_result(result):
         st.session_state.current_period -= 1
         st.session_state.last_prediction = None
 
-# Prediction logic
 def predict(history):
     values = [entry["result"] for entry in history]
     if len(values) < 5:
@@ -144,7 +129,6 @@ def predict(history):
     confidence = int((pattern_counts[best] / total) * 100)
     return best, confidence
 
-# Buttons
 col1, col2, col3 = st.columns([1, 1, 2])
 with col1:
     if st.button("🔴 BIG"):
@@ -160,17 +144,14 @@ with col3:
         st.session_state.prediction_stats = {"correct": 0, "total": 0}
         st.session_state.wrong_streak = 0
 
-# Status
 count = len(st.session_state.history)
 st.info(f"✅ Entries: `{count}` / 50")
 
-# Prediction
 if count >= 50:
     st.markdown("## 🔮 Prediction")
     pred, conf = predict(st.session_state.history)
 
     if pred:
-        # Handle reversal prediction logic
         if st.session_state.wrong_streak >= 3:
             reversed_pred = "Small" if pred == "Big" else "Big"
             st.warning(f"🧭 Reversal Detected — Predicting: `{reversed_pred}` instead of `{pred}`")
@@ -189,7 +170,6 @@ if count >= 50:
         if st.session_state.wrong_streak >= 3:
             st.error("⚠️ Trend Reversal Suspected")
 
-# History Table
 if st.session_state.history:
     st.markdown("## 📚 History Data (Latest on Top)")
     history_df = pd.DataFrame(reversed(st.session_state.history))
@@ -198,43 +178,27 @@ if st.session_state.history:
     history_df = history_df.rename(columns={"period": "Period No.", "result": "Result"})
     st.dataframe(history_df, use_container_width=True)
 
-    # Pie Chart
     results = [entry["result"] for entry in st.session_state.history]
     fig, ax = plt.subplots()
-    ax.pie(
-        [results.count("Big"), results.count("Small")],
-        labels=["Big", "Small"],
-        autopct="%1.1f%%",
-        colors=["red", "blue"],
-        startangle=90
-    )
+    ax.pie([
+        results.count("Big"),
+        results.count("Small")
+    ], labels=["Big", "Small"], autopct="%1.1f%%", colors=["red", "blue"], startangle=90)
     ax.axis("equal")
     st.pyplot(fig)
 
-    # Trading Style Trend Chart
     st.markdown("## 📊 Trading-style Trend Tracker")
     trend_data = []
-
     score = 0
-    for entry in reversed(st.session_state.history):  # Reverse to go from oldest to latest
-        if entry["result"] == "Big":
-            score += 1
-        else:
-            score -= 1
+    for entry in reversed(st.session_state.history):
+        score += 1 if entry["result"] == "Big" else -1
         trend_data.append(score)
-
-    trend_data.reverse()  # To make it time-sequential
-
-    trend_df = pd.DataFrame({
-        "Round": list(range(1, len(trend_data) + 1)),
-        "Trend": trend_data
-    })
-
+    trend_data.reverse()
+    trend_df = pd.DataFrame({"Round": list(range(1, len(trend_data) + 1)), "Trend": trend_data})
     st.line_chart(trend_df.set_index("Round"))
 
-# Footer - Credit, YouTube & Telegram
-st.markdown(
-    """
+# Footer
+st.markdown("""
     <hr style='margin-top: 50px;'>
     <div style='text-align: center; font-size: 18px;'>
         🚀 Created by <strong>Frizo</strong><br><br>
@@ -248,6 +212,4 @@ st.markdown(
         </a><br><br>
         💸 Contact for Investments: <strong>x10 Returns Possible 💰</strong>
     </div>
-    """,
-    unsafe_allow_html=True
-)
+""", unsafe_allow_html=True)
