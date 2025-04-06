@@ -2,26 +2,24 @@ import streamlit as st
 import datetime
 import pytz
 import matplotlib.pyplot as plt
-import time
 
-# Set Streamlit page config
+# Configure page
 st.set_page_config(page_title="Frizo Predictor", layout="centered")
 st.title("🎯 Frizo Predictor")
 st.markdown("### 👇 Enter 50 rounds of results to unlock Prediction Mode")
 
-# Time config (India Standard Time)
+# Get Indian time
 ist = pytz.timezone("Asia/Kolkata")
-current_time = datetime.datetime.now(ist)
-seconds = current_time.second
-remaining = 60 - seconds
+now = datetime.datetime.now(ist)
+seconds_left = 60 - now.second
+st.subheader(f"🕒 Indian Time: `{now.strftime('%H:%M:%S')}`")
+st.subheader(f"⏳ Next Round In: `{seconds_left}` seconds")
 
-# --- Initialize session state ---
+# Initialize session state
 if "history" not in st.session_state:
     st.session_state.history = []
 if "current_period" not in st.session_state:
     st.session_state.current_period = None
-if "pending_result" not in st.session_state:
-    st.session_state.pending_result = None
 if "last_prediction" not in st.session_state:
     st.session_state.last_prediction = None
 if "prediction_stats" not in st.session_state:
@@ -29,127 +27,110 @@ if "prediction_stats" not in st.session_state:
 if "wrong_streak" not in st.session_state:
     st.session_state.wrong_streak = 0
 
-# --- Period Entry ---
+# Enter last 3 digits of period number
 with st.expander("🔢 Enter Last 3 Digits of Period Number (e.g. 101)"):
-    last_3 = st.text_input("Enter Last 3 Digits", placeholder="e.g. 101")
-    if last_3.isdigit() and 0 <= int(last_3) <= 999:
-        st.session_state.current_period = int(last_3)
+    last_digits = st.text_input("Only digits", max_chars=3, placeholder="e.g. 101")
+    if last_digits.isdigit():
+        st.session_state.current_period = int(last_digits)
 
 if st.session_state.current_period is not None:
-    st.markdown(f"### 📌 Starting From Period: `{st.session_state.current_period}` (descending)")
+    st.markdown(f"### 📌 Starting From Period: `{st.session_state.current_period}`")
 
-# --- Time Display ---
-st.subheader(f"🕒 India Time: `{current_time.strftime('%H:%M:%S')}`")
-st.subheader(f"⏳ Next Round In: `{remaining}` seconds")
-
-# --- Prediction Logic ---
-def predict_next_pattern(history):
-    values = [h["result"] for h in history]
+# Prediction logic
+def predict(history):
+    values = [entry["result"] for entry in history]
+    if len(values) < 5:
+        return None, 0
     recent = values[-5:]
     pattern_counts = {"Big": 0, "Small": 0}
     for i in range(len(values) - 5):
         if values[i:i+5] == recent:
-            next_value = values[i+5]
-            pattern_counts[next_value] += 1
-    if sum(pattern_counts.values()) == 0:
+            next_val = values[i+5]
+            pattern_counts[next_val] += 1
+    total_matches = sum(pattern_counts.values())
+    if total_matches == 0:
         return None, 0
-    prediction = max(pattern_counts, key=pattern_counts.get)
-    confidence = int((pattern_counts[prediction] / sum(pattern_counts.values())) * 100)
-    return prediction, confidence
+    best = max(pattern_counts, key=pattern_counts.get)
+    confidence = int((pattern_counts[best] / total_matches) * 100)
+    return best, confidence
 
-# --- Buttons ---
-col1, col2, col3 = st.columns([1, 1, 2])
-
-def set_pending_result(result):
+# Store result
+def add_result(result):
     if st.session_state.current_period is not None:
-        st.session_state.pending_result = {
+        st.session_state.history.append({
             "period": st.session_state.current_period,
             "result": result
-        }
+        })
+        # Handle prediction check
+        if st.session_state.last_prediction:
+            predicted = st.session_state.last_prediction["value"]
+            if predicted == result:
+                st.session_state.prediction_stats["correct"] += 1
+                st.session_state.wrong_streak = 0
+            else:
+                st.session_state.wrong_streak += 1
+            st.session_state.prediction_stats["total"] += 1
         st.session_state.current_period -= 1
-        st.rerun()
+        st.session_state.last_prediction = None
 
+# Buttons
+col1, col2, col3 = st.columns([1,1,2])
 with col1:
     if st.button("🔴 BIG"):
-        set_pending_result("Big")
+        add_result("Big")
 with col2:
     if st.button("🔵 SMALL"):
-        set_pending_result("Small")
+        add_result("Small")
 with col3:
     if st.button("🧹 Reset History"):
         st.session_state.history = []
         st.session_state.current_period = None
-        st.session_state.pending_result = None
         st.session_state.last_prediction = None
         st.session_state.prediction_stats = {"correct": 0, "total": 0}
         st.session_state.wrong_streak = 0
-        st.rerun()
 
-# --- Add pending result after rerun ---
-if st.session_state.pending_result:
-    result_data = st.session_state.pending_result
-    st.session_state.history.append(result_data)
-
-    # Check if the prediction was correct
-    if st.session_state.last_prediction:
-        predicted = st.session_state.last_prediction["value"]
-        actual = result_data["result"]
-        st.session_state.prediction_stats["total"] += 1
-
-        if predicted == actual:
-            st.session_state.prediction_stats["correct"] += 1
-            st.session_state.wrong_streak = 0
-        else:
-            st.session_state.wrong_streak += 1
-
-    st.session_state.pending_result = None
-    st.session_state.last_prediction = None
-
-# --- Status ---
+# Progress
 count = len(st.session_state.history)
-st.info(f"🧾 You’ve entered `{count}` / 50 patterns")
+st.info(f"✅ Data Entered: `{count}` / 50")
 
-# --- Prediction Section ---
+# Prediction Section
 if count >= 50:
-    st.markdown("## 🧠 Prediction Mode")
-    prediction, confidence = predict_next_pattern(st.session_state.history)
-    if prediction:
-        st.success(f"🔮 Predicted: `{prediction}` ({confidence}% confidence)")
-        st.session_state.last_prediction = {"value": prediction, "confidence": confidence}
+    st.markdown("## 🔮 Prediction")
+    pred, conf = predict(st.session_state.history)
+    if pred:
+        st.success(f"📌 Predicted Next: `{pred}` with `{conf}%` confidence")
+        st.session_state.last_prediction = {"value": pred, "confidence": conf}
     else:
-        st.warning("⚠️ Not enough matching pattern found.")
+        st.warning("⚠️ Not enough pattern data for prediction")
 
-    # Prediction accuracy stats
+    # Accuracy Display
     correct = st.session_state.prediction_stats["correct"]
     total = st.session_state.prediction_stats["total"]
     if total > 0:
-        accuracy = int((correct / total) * 100)
-        st.markdown(f"📈 Prediction Accuracy: `{correct}` correct / `{total}` total → **{accuracy}%**")
+        acc = int((correct / total) * 100)
+        st.markdown(f"🎯 Accuracy: `{correct}` out of `{total}` → **{acc}%**")
         if st.session_state.wrong_streak >= 3:
-            st.error("⚠️ Warning: Pattern behavior might be reversing!")
+            st.error("⚠️ Warning: Possible Trend Reversal Detected!")
 
-# --- History Table ---
+# History Data
 if st.session_state.history:
-    st.markdown("## 📚 History Data (latest at top)")
-
-    table_data = []
+    st.markdown("## 📚 History Data (Latest on Top)")
+    display_data = []
     for idx, entry in enumerate(reversed(st.session_state.history), 1):
-        table_data.append({
+        display_data.append({
             "Sr. No.": idx,
             "Period No.": entry["period"],
             "Result": entry["result"]
         })
-
-    st.dataframe(table_data, use_container_width=True)
+    st.dataframe(display_data, use_container_width=True)
 
     # Pie Chart
     fig, ax = plt.subplots()
-    results = [entry["result"] for entry in st.session_state.history]
-    counts = [results.count("Big"), results.count("Small")]
+    all_results = [h["result"] for h in st.session_state.history]
+    counts = [all_results.count("Big"), all_results.count("Small")]
     ax.pie(counts, labels=["Big", "Small"], autopct="%1.1f%%", startangle=90, colors=["red", "blue"])
     ax.axis("equal")
     st.pyplot(fig)
 
-# --- Auto Refresh Timer ---
-time.sleep(1)
-st.rerun()
+# Manual refresh button
+st.button("🔄 Refresh Timer", on_click=lambda: st.rerun())
