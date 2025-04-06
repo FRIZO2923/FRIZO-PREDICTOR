@@ -2,6 +2,7 @@ import streamlit as st
 import datetime
 import pytz
 import matplotlib.pyplot as plt
+import time
 
 # Set Streamlit page config
 st.set_page_config(page_title="Frizo Predictor", layout="centered")
@@ -15,6 +16,16 @@ current_time = datetime.datetime.now(ist)
 seconds = current_time.second
 remaining = 60 - seconds
 
+# Input block for last 3 periods
+with st.expander("📌 Enter Last 3 Period Numbers (Optional)"):
+    period1 = st.text_input("Period 1")
+    period2 = st.text_input("Period 2")
+    period3 = st.text_input("Period 3")
+
+    if any([period1, period2, period3]):
+        st.markdown(f"### 🧾 Recent Periods: `{period1 or '-'} | {period2 or '-'} | {period3 or '-'}`")
+
+# Display global time
 st.subheader(f"🕒 India Time: `{current_time.strftime('%H:%M:%S')}`")
 st.subheader(f"⏳ Next Round In: `{remaining}` seconds")
 
@@ -81,6 +92,5 @@ if st.session_state.get("_rerun_flag", False):
     st.experimental_rerun()
 
 # Auto-refresh every second
-import time
 time.sleep(1)
 st.rerun()
