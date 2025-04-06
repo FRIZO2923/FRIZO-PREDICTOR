@@ -182,3 +182,24 @@ if st.session_state.history:
     )
     ax.axis("equal")
     st.pyplot(fig)
+
+    # Trading Style Trend Chart
+    st.markdown("## 📊 Trading-style Trend Tracker")
+    trend_data = []
+
+    score = 0
+    for entry in reversed(st.session_state.history):  # Reverse to go from oldest to latest
+        if entry["result"] == "Big":
+            score += 1
+        else:
+            score -= 1
+        trend_data.append(score)
+
+    trend_data.reverse()  # To make it time-sequential
+
+    trend_df = pd.DataFrame({
+        "Round": list(range(1, len(trend_data) + 1)),
+        "Trend": trend_data
+    })
+
+    st.line_chart(trend_df.set_index("Round"))
