@@ -203,3 +203,9 @@ if st.session_state.history:
     })
 
     st.line_chart(trend_df.set_index("Round"))
+
+# Footer - Credit
+st.markdown(
+    "<hr style='margin-top: 50px;'><p style='text-align: center; font-size: 18px;'>🚀 Created by <strong>Frizo</strong></p>",
+    unsafe_allow_html=True
+)
