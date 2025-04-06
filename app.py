@@ -46,9 +46,10 @@ def refresh_timer():
 # Timer Display with Manual Refresh Button
 col1, col2 = st.columns([4, 1])
 with col1:
-    timer_placeholder.text(f"🕐 60-Second Timer: `{st.session_state.timer_seconds}` seconds remaining")
+    timer_placeholder.text(f"🕐 60-Second Timer: `{st.session_state.timer_seconds}` seconds remaining", 
+                          font_size="32px")
 with col2:
-    if st.button("🔄 Refresh Timer"):
+    if st.button("🔄 Refresh Timer", key="refresh_timer", use_container_width=True):
         refresh_timer()  # Refresh the timer manually
 
 # Session variables for results and prediction logic
@@ -148,7 +149,8 @@ if count >= 50:
             st.warning(f"🧭 Reversal Detected — Predicting: `{reversed_pred}` instead of `{pred}`")
             pred = reversed_pred
 
-        st.success(f"📌 Predicted Next: `{pred}` with `{conf}%` confidence")
+        # Increased font size for Predicted Next
+        st.markdown(f"### 📌 Predicted Next: `{pred}` with `{conf}%` confidence", unsafe_allow_html=True)
         st.session_state.last_prediction = {"value": pred, "confidence": conf}
     else:
         st.warning("⚠️ Not enough data")
