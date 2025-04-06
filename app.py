@@ -29,38 +29,55 @@ if "show_referral_message" not in st.session_state:
 if st.session_state.show_referral_message:
     with st.container():
         color = random.choice(["green", "orange", "blue", "purple"])
-st.markdown(
-    """
-    <div style="
-        position: fixed;
-        bottom: 10px;
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: #fff3cd;
-        color: #856404;
-        padding: 15px;
-        border: 2px solid orange;
-        border-radius: 10px;
-        text-align: center;
-        z-index: 9999;
-        width: 90%;
-        font-size: 16px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        animation: blinker 1.5s linear infinite;
-    ">
-        🤑 <strong>Get ₹100 Cashback</strong> on ₹300 Recharge!<br>
-        👉 Create a new account using our referral link for best prediction results.<br><br>
-        🔗 <a href="https://www.bigdaddygame.net//#/register?invitationCode=Narn6464148" target="_blank" style="text-decoration: none; color: orange; font-weight: bold;">
-        Click Here to Register Now</a>
-    </div>
-    <style>
-        @keyframes blinker {
-            50% { opacity: 0.6; }
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+# Show popup only if not closed
+if "show_referral_popup" not in st.session_state:
+    st.session_state.show_referral_popup = True
+
+if st.session_state.show_referral_popup:
+    st.markdown(
+        """
+        <div id="referral-banner" style="
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border: 2px solid orange;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 9999;
+            width: 90%;
+            font-size: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: blinker 1.5s linear infinite;
+        ">
+            🤑 <strong>Get ₹100 Cashback</strong> on ₹300 Recharge!<br>
+            👉 Create a new account using our referral link for best prediction results.<br><br>
+            🔗 <a href="https://www.bigdaddygame.net//#/register?invitationCode=Narn6464148" target="_blank" style="text-decoration: none; color: orange; font-weight: bold;">
+            Click Here to Register Now</a><br><br>
+            <button onclick="document.getElementById('referral-banner').style.display='none'" style="
+                background-color: #ff4d4d;
+                color: white;
+                border: none;
+                padding: 5px 10px;
+                border-radius: 5px;
+                font-size: 14px;
+                cursor: pointer;
+                margin-top: 5px;
+            ">❌ Close</button>
+        </div>
+
+        <style>
+            @keyframes blinker {
+                50% { opacity: 0.6; }
+            }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
 
 st.markdown(
     """
