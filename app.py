@@ -11,9 +11,16 @@ import random
 st.set_page_config(page_title="Frizo Predictor", layout="centered")
 
 # Title - centered and styled
-st.markdown("""
-    <h1 style='text-align: center; font-size: 48px; font-weight: bold;'>🎯 FRIZO Predictor</h1>
-""", unsafe_allow_html=True)
+# Custom styled title with spacing below
+st.markdown(
+    """
+    <div style='text-align: center; font-size: 48px; font-weight: bold; padding: 20px 0; margin-bottom: 30px;'>
+        🎯 FRIZO Predictor
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 
 # 🔁 Referral Popup
 if "show_referral_message" not in st.session_state:
