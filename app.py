@@ -82,12 +82,18 @@ def predict(history):
 # Timer Update
 def display_timer():
     # Display smooth timer countdown
-    now = datetime.datetime.now(ist)
-    seconds_left = 60 - now.second
-    timer_placeholder.text(f"⏳ Next Round In: `{seconds_left}` seconds")
+    while True:
+        now = datetime.datetime.now(ist)
+        seconds_left = 60 - now.second
+        timer_placeholder.text(f"⏳ Next Round In: `{seconds_left}` seconds")
+        time.sleep(1)  # Update every second
 
 # Creating the timer placeholder
 timer_placeholder = st.empty()
+
+# Start the timer in the background
+if st.session_state.history:  # Ensure that the app has already started before displaying the timer
+    display_timer()
 
 # Buttons
 col1, col2, col3 = st.columns([1, 1, 2])
@@ -104,9 +110,6 @@ with col3:
         st.session_state.last_prediction = None
         st.session_state.prediction_stats = {"correct": 0, "total": 0}
         st.session_state.wrong_streak = 0
-
-# Timer Update
-display_timer()
 
 # Status
 count = len(st.session_state.history)
