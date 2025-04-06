@@ -19,7 +19,7 @@ remaining = max(0, TIMER_DURATION - int(elapsed))
 
 st.subheader(f"⏳ Next Round In: `{remaining}` seconds")
 
-# Buttons to log results
+# Buttons for input and control
 col1, col2, col3, col4 = st.columns([1, 1, 2, 2])
 
 with col1:
@@ -39,13 +39,12 @@ with col3:
         st.session_state.start_time = time.time()
         st.rerun()
 
-if st.button("🔄 Restart Data"):
-    st.session_state.history = []
-    st.session_state.start_time = time.time()
-    st.session_state._rerun_flag = True
+with col4:
+    if st.button("🧹 Reset History"):
+        st.session_state.history = []
+        st.session_state._rerun_flag = True
 
-
-# Count tracker
+# Pattern count tracker
 count = len(st.session_state.history)
 st.info(f"🧾 You’ve entered `{count}` / 50 patterns")
 
@@ -69,10 +68,10 @@ if count >= 50:
     prediction, confidence = predict_next_pattern(st.session_state.history)
     st.success(f"🔮 Predicted: `{prediction}` ({confidence}% confidence)")
 
-# History and Pie Chart
+# History and pie chart
 if st.session_state.history:
     st.markdown("## 🔂 Full History (latest at top)")
-    st.write(st.session_state.history[::-1])  # Reversed order
+    st.write(st.session_state.history[::-1])  # Reverse display
 
     fig, ax = plt.subplots()
     counts = [st.session_state.history.count("Big"), st.session_state.history.count("Small")]
@@ -85,7 +84,7 @@ if remaining > 0:
     time.sleep(1)
     st.rerun()
 
-# Final safe rerun if flag was triggered
+# Safe rerun for reset history
 if st.session_state.get("_rerun_flag", False):
     st.session_state._rerun_flag = False
     st.experimental_rerun()
