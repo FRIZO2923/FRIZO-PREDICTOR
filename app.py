@@ -22,20 +22,36 @@ st.subheader(f"⏳ Next Round In: `{seconds_left}` seconds")
 # Timer placeholder
 timer_placeholder = st.empty()
 
+# Session variable to track the time
+if "timer_seconds" not in st.session_state:
+    st.session_state.timer_seconds = 60 - now.second  # Initialize the timer to seconds left in the current minute
+
 # Countdown timer function synchronized with IST
 def countdown_timer():
     while True:
         now = datetime.datetime.now(ist)  # Get current IST time
-        seconds_left = 60 - now.second  # Get the remaining seconds in the minute
-        timer_placeholder.text(f"🕐 60-Second Timer: `{seconds_left}` seconds remaining")
-        time.sleep(1)  # Wait for 1 second before updating
+        st.session_state.timer_seconds = 60 - now.second  # Update timer to remaining seconds in the minute
+        time.sleep(1)  # Wait for 1 second before updating the timer
 
 # Start the countdown timer in a separate thread
 if "timer_thread" not in st.session_state:
     st.session_state.timer_thread = threading.Thread(target=countdown_timer, daemon=True)
     st.session_state.timer_thread.start()
 
-# Session variables
+# Function to manually refresh the timer
+def refresh_timer():
+    now = datetime.datetime.now(ist)
+    st.session_state.timer_seconds = 60 - now.second  # Reset the timer to the current seconds left in the minute
+
+# Timer Display with Manual Refresh Button
+col1, col2 = st.columns([4, 1])
+with col1:
+    timer_placeholder.text(f"🕐 60-Second Timer: `{st.session_state.timer_seconds}` seconds remaining")
+with col2:
+    if st.button("🔄 Refresh Timer"):
+        refresh_timer()  # Refresh the timer manually
+
+# Session variables for results and prediction logic
 if "history" not in st.session_state:
     st.session_state.history = []
 
