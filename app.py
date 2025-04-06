@@ -1,45 +1,41 @@
 import streamlit as st
-import time
+import datetime
+import pytz
 import matplotlib.pyplot as plt
 
+# Set Streamlit page config
 st.set_page_config(page_title="Frizo Predictor", layout="centered")
 
 st.title("🎯 Frizo Predictor")
 st.markdown("### 👇 Enter 50 rounds of results to unlock Prediction Mode")
 
+# India Standard Time (IST)
+ist = pytz.timezone("Asia/Kolkata")
+current_time = datetime.datetime.now(ist)
+seconds = current_time.second
+remaining = 60 - seconds
+
+st.subheader(f"🕒 India Time: `{current_time.strftime('%H:%M:%S')}`")
+st.subheader(f"⏳ Next Round In: `{remaining}` seconds")
+
 # Init session variables
 if "history" not in st.session_state:
     st.session_state.history = []
-if "start_time" not in st.session_state:
-    st.session_state.start_time = time.time()
-
-TIMER_DURATION = 60
-elapsed = time.time() - st.session_state.start_time
-remaining = max(0, TIMER_DURATION - int(elapsed))
-
-st.subheader(f"⏳ Next Round In: `{remaining}` seconds")
 
 # Buttons for input and control
-col1, col2, col3, col4 = st.columns([1, 1, 2, 2])
+col1, col2, col3 = st.columns([1, 1, 2])
 
 with col1:
     if st.button("🔴 BIG"):
         st.session_state.history.append("Big")
-        st.session_state.start_time = time.time()
         st.rerun()
 
 with col2:
     if st.button("🔵 SMALL"):
         st.session_state.history.append("Small")
-        st.session_state.start_time = time.time()
         st.rerun()
 
 with col3:
-    if st.button("🔁 Restart Timer Only"):
-        st.session_state.start_time = time.time()
-        st.rerun()
-
-with col4:
     if st.button("🧹 Reset History"):
         st.session_state.history = []
         st.session_state._rerun_flag = True
@@ -79,12 +75,12 @@ if st.session_state.history:
     ax.axis("equal")
     st.pyplot(fig)
 
-# Auto-refresh timer
-if remaining > 0:
-    time.sleep(1)
-    st.rerun()
-
 # Safe rerun for reset history
 if st.session_state.get("_rerun_flag", False):
     st.session_state._rerun_flag = False
     st.experimental_rerun()
+
+# Auto-refresh every second
+import time
+time.sleep(1)
+st.rerun()
