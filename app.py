@@ -148,3 +148,14 @@ if st.session_state.history:
     )
     ax.axis("equal")
     st.pyplot(fig)
+
+    # Trend Line Graph
+    st.markdown("## 📈 Result Trend Over Time")
+    trend_df = pd.DataFrame(st.session_state.history)
+
+    if not trend_df.empty:
+        trend_df["Value"] = trend_df["result"].apply(lambda x: 1 if x == "Big" else 0)
+        trend_df["Label"] = trend_df["result"]
+        trend_df = trend_df[::-1].reset_index(drop=True)
+
+        st.line_chart(trend_df["Value"])
