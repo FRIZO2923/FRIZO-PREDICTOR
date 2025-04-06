@@ -4,6 +4,7 @@ import pytz
 import pandas as pd
 import matplotlib.pyplot as plt
 import time
+import threading
 
 # Setup page (must be first command)
 st.set_page_config(page_title="Frizo Predictor", layout="centered")
@@ -79,9 +80,8 @@ def predict(history):
     confidence = int((pattern_counts[best] / total) * 100)
     return best, confidence
 
-# Timer Update
+# Timer Update function
 def display_timer():
-    # Display smooth timer countdown
     while True:
         now = datetime.datetime.now(ist)
         seconds_left = 60 - now.second
@@ -91,9 +91,10 @@ def display_timer():
 # Creating the timer placeholder
 timer_placeholder = st.empty()
 
-# Start the timer in the background
-if st.session_state.history:  # Ensure that the app has already started before displaying the timer
-    display_timer()
+# Start the timer in a separate thread to avoid blocking the app
+if "timer_thread" not in st.session_state:
+    st.session_state.timer_thread = threading.Thread(target=display_timer, daemon=True)
+    st.session_state.timer_thread.start()
 
 # Buttons
 col1, col2, col3 = st.columns([1, 1, 2])
