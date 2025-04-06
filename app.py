@@ -11,6 +11,8 @@ st.set_page_config(page_title="Frizo Predictor", layout="centered")
 
 st.title("🎯 FRIZO Predictor")
 
+
+
 # 🔁 Referral Popup
 import random
 
