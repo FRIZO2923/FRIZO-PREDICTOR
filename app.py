@@ -1,4 +1,4 @@
-import streamlit as st
+increase its size import streamlit as st
 import datetime
 import pytz
 import pandas as pd
@@ -46,10 +46,9 @@ def refresh_timer():
 # Timer Display with Manual Refresh Button
 col1, col2 = st.columns([4, 1])
 with col1:
-    timer_placeholder.text(f"🕐 60-Second Timer: `{st.session_state.timer_seconds}` seconds remaining", 
-                          font_size="32px")
+    timer_placeholder.text(f"🕐 60-Second Timer: `{st.session_state.timer_seconds}` seconds remaining")
 with col2:
-    if st.button("🔄 Refresh Timer", key="refresh_timer", use_container_width=True):
+    if st.button("🔄 Refresh Timer"):
         refresh_timer()  # Refresh the timer manually
 
 # Session variables for results and prediction logic
@@ -149,8 +148,7 @@ if count >= 50:
             st.warning(f"🧭 Reversal Detected — Predicting: `{reversed_pred}` instead of `{pred}`")
             pred = reversed_pred
 
-        # Increased font size for Predicted Next
-        st.markdown(f"### 📌 Predicted Next: `{pred}` with `{conf}%` confidence", unsafe_allow_html=True)
+        st.success(f"📌 Predicted Next: `{pred}` with `{conf}%` confidence")
         st.session_state.last_prediction = {"value": pred, "confidence": conf}
     else:
         st.warning("⚠️ Not enough data")
@@ -204,4 +202,4 @@ if st.session_state.history:
         "Trend": trend_data
     })
 
-    st.line_chart(trend_df.set_index("Round"))
+    st.line_chart(trend_df.set_index("Round")) from this
