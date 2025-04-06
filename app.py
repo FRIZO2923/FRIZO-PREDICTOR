@@ -1,48 +1,65 @@
 import streamlit as st
-import pandas as pd
+import time
 import matplotlib.pyplot as plt
-from collections import deque
 
-st.set_page_config(page_title="Big Daddy 1-Min Predictor", layout="centered")
-st.title("🎲 Big Daddy Games - 1 Minute Pattern Predictor")
+st.set_page_config(page_title="Frizo Predictor", layout="centered")
 
-# Initialize session state
-if "results" not in st.session_state:
-    st.session_state.results = deque(maxlen=50)
+st.title("🎯 Frizo Predictor")
+st.markdown("1-Min Auto-Timer Mode is now **active** ⏱️")
 
-# Add result
-col1, col2 = st.columns(2)
-with col1:
-    if st.button("🟥 Big"):
-        st.session_state.results.append("Big")
-with col2:
-    if st.button("🟦 Small"):
-        st.session_state.results.append("Small")
+# Store history in session
+if "history" not in st.session_state:
+    st.session_state.history = []
 
-# Display results
-st.subheader("🔁 Last 50 Results")
-st.write(list(st.session_state.results))
+# --- TIMER SECTION ---
+TIMER_DURATION = 60  # seconds
 
-# Count occurrences
-big_count = st.session_state.results.count("Big")
-small_count = st.session_state.results.count("Small")
+# Store the timer start time
+if "start_time" not in st.session_state:
+    st.session_state.start_time = time.time()
 
-st.write(f"🔴 Big: {big_count} | 🔵 Small: {small_count}")
+# Calculate time remaining
+elapsed = time.time() - st.session_state.start_time
+remaining = max(0, TIMER_DURATION - int(elapsed))
 
-# Prediction Logic (Simple)
-last_3 = list(st.session_state.results)[-3:]
-prediction = "Big" if last_3.count("Small") > last_3.count("Big") else "Small"
+# Timer countdown display
+st.subheader(f"⏳ Next Round In: `{remaining}` seconds")
 
-st.subheader("🔮 Next Prediction")
-st.markdown(f"### Likely: **{prediction}**")
+# If timer hits zero
+if remaining == 0:
+    st.success("🚨 NEW ROUND READY! Log your prediction now.")
+    if st.button("🔁 Restart Timer"):
+        st.session_state.start_time = time.time()
+        st.experimental_rerun()
 
-# Line chart of trends
-def plot_trends(results):
-    numeric = [1 if r == "Big" else 0 for r in results]
-    df = pd.DataFrame(numeric, columns=["Big = 1 / Small = 0"])
-    st.line_chart(df)
+    st.markdown("### Quick Log:")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("🔴 BIG"):
+            st.session_state.history.append("Big")
+            st.experimental_rerun()
+    with col2:
+        if st.button("🔵 SMALL"):
+            st.session_state.history.append("Small")
+            st.experimental_rerun()
 
-st.subheader("📈 Pattern Trend (1 = Big, 0 = Small)")
-plot_trends(st.session_state.results)
+# --- SHOW HISTORY ---
+if st.session_state.history:
+    st.markdown("## 🧾 History")
+    st.write(st.session_state.history)
 
-st.caption("⚠️ Manual input for now. Auto-tracking coming soon...")
+    # Pie chart
+    fig, ax = plt.subplots()
+    ax.pie(
+        [st.session_state.history.count("Big"), st.session_state.history.count("Small")],
+        labels=["Big", "Small"],
+        autopct="%1.1f%%",
+        startangle=90,
+        colors=["red", "blue"]
+    )
+    ax.axis("equal")
+    st.pyplot(fig)
+
+# Auto-refresh the app every 1 sec to keep timer live
+st.experimental_rerun()
+time.sleep(1)
