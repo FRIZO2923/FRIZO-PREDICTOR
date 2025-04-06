@@ -3,8 +3,8 @@ import datetime
 import pytz
 import pandas as pd
 import matplotlib.pyplot as plt
-import time
 import threading
+import time
 
 # Setup page (must be first command)
 st.set_page_config(page_title="Frizo Predictor", layout="centered")
@@ -14,6 +14,26 @@ st.markdown("### 👇 Enter 50 rounds of results to unlock Prediction Mode")
 
 # Indian time sync
 ist = pytz.timezone("Asia/Kolkata")
+now = datetime.datetime.now(ist)
+seconds_left = 60 - now.second
+st.subheader(f"🕒 IST: `{now.strftime('%H:%M:%S')}`")
+st.subheader(f"⏳ Next Round In: `{seconds_left}` seconds")
+
+# Timer placeholder
+timer_placeholder = st.empty()
+
+# Countdown timer function synchronized with IST
+def countdown_timer():
+    while True:
+        now = datetime.datetime.now(ist)  # Get current IST time
+        seconds_left = 60 - now.second  # Get the remaining seconds in the minute
+        timer_placeholder.text(f"🕐 60-Second Timer: `{seconds_left}` seconds remaining")
+        time.sleep(1)  # Wait for 1 second before updating
+
+# Start the countdown timer in a separate thread
+if "timer_thread" not in st.session_state:
+    st.session_state.timer_thread = threading.Thread(target=countdown_timer, daemon=True)
+    st.session_state.timer_thread.start()
 
 # Session variables
 if "history" not in st.session_state:
@@ -79,22 +99,6 @@ def predict(history):
     best = max(pattern_counts, key=pattern_counts.get)
     confidence = int((pattern_counts[best] / total) * 100)
     return best, confidence
-
-# Timer Update function
-def display_timer():
-    while True:
-        now = datetime.datetime.now(ist)
-        seconds_left = 60 - now.second
-        timer_placeholder.text(f"⏳ Next Round In: `{seconds_left}` seconds")
-        time.sleep(1)  # Update every second
-
-# Creating the timer placeholder
-timer_placeholder = st.empty()
-
-# Start the timer in a separate thread to avoid blocking the app
-if "timer_thread" not in st.session_state:
-    st.session_state.timer_thread = threading.Thread(target=display_timer, daemon=True)
-    st.session_state.timer_thread.start()
 
 # Buttons
 col1, col2, col3 = st.columns([1, 1, 2])
@@ -162,24 +166,3 @@ if st.session_state.history:
     )
     ax.axis("equal")
     st.pyplot(fig)
-
-    # Trading Style Trend Chart
-    st.markdown("## 📊 Trading-style Trend Tracker")
-    trend_data = []
-
-    score = 0
-    for entry in reversed(st.session_state.history):  # Reverse to go from oldest to latest
-        if entry["result"] == "Big":
-            score += 1
-        else:
-            score -= 1
-        trend_data.append(score)
-
-    trend_data.reverse()  # To make it time-sequential
-
-    trend_df = pd.DataFrame({
-        "Round": list(range(1, len(trend_data) + 1)),
-        "Trend": trend_data
-    })
-
-    st.line_chart(trend_df.set_index("Round"))
