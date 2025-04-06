@@ -3,6 +3,10 @@ import datetime
 import pytz
 import pandas as pd
 import matplotlib.pyplot as plt
+from streamlit_autorefresh import st_autorefresh
+
+# 🔄 Smooth refresh every 1 second
+st_autorefresh(interval=1000, key="refresh")
 
 # Setup page
 st.set_page_config(page_title="Frizo Predictor", layout="centered")
