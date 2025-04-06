@@ -16,52 +16,66 @@ current_time = datetime.datetime.now(ist)
 seconds = current_time.second
 remaining = 60 - seconds
 
-# Input block for last 3 periods
-with st.expander("📌 Enter Last 3 Period Numbers (Optional)"):
-    period1 = st.text_input("Period 1")
-    period2 = st.text_input("Period 2")
-    period3 = st.text_input("Period 3")
+# Session state for period tracking
+if "history" not in st.session_state:
+    st.session_state.history = []  # Format: [{"period": 72653, "result": "Big"}]
+if "current_period" not in st.session_state:
+    st.session_state.current_period = None
 
-    if any([period1, period2, period3]):
-        st.markdown(f"### 🧾 Recent Periods: `{period1 or '-'} | {period2 or '-'} | {period3 or '-'}`")
+# Input for last 3 period numbers
+with st.expander("🔢 Enter Last 3 Period Numbers (Only Digits)"):
+    period1 = st.text_input("Period 1", placeholder="e.g. 72651")
+    period2 = st.text_input("Period 2", placeholder="e.g. 72652")
+    period3 = st.text_input("Period 3 (Latest)", placeholder="e.g. 72653")
+
+    if period3.isdigit():
+        st.session_state.current_period = int(period3)
+
+if st.session_state.current_period:
+    st.markdown(f"### 📌 Starting From Period: `{st.session_state.current_period + 1}`")
 
 # Display global time
 st.subheader(f"🕒 India Time: `{current_time.strftime('%H:%M:%S')}`")
 st.subheader(f"⏳ Next Round In: `{remaining}` seconds")
 
-# Init session variables
-if "history" not in st.session_state:
-    st.session_state.history = []
-
-# Buttons for input and control
+# Input buttons
 col1, col2, col3 = st.columns([1, 1, 2])
+
+def add_result(result):
+    if st.session_state.current_period is not None:
+        st.session_state.current_period += 1
+        st.session_state.history.append({
+            "period": st.session_state.current_period,
+            "result": result
+        })
+        st.rerun()
 
 with col1:
     if st.button("🔴 BIG"):
-        st.session_state.history.append("Big")
-        st.rerun()
+        add_result("Big")
 
 with col2:
     if st.button("🔵 SMALL"):
-        st.session_state.history.append("Small")
-        st.rerun()
+        add_result("Small")
 
 with col3:
     if st.button("🧹 Reset History"):
         st.session_state.history = []
+        st.session_state.current_period = None
         st.session_state._rerun_flag = True
 
-# Pattern count tracker
+# Count tracker
 count = len(st.session_state.history)
 st.info(f"🧾 You’ve entered `{count}` / 50 patterns")
 
 # Prediction logic
 def predict_next_pattern(history):
-    recent = history[-5:]
+    values = [h["result"] for h in history]
+    recent = values[-5:]
     pattern_counts = {"Big": 0, "Small": 0}
-    for i in range(len(history) - 5):
-        if history[i:i+5] == recent:
-            next_value = history[i+5]
+    for i in range(len(values) - 5):
+        if values[i:i+5] == recent:
+            next_value = values[i+5]
             pattern_counts[next_value] += 1
     if sum(pattern_counts.values()) == 0:
         return "❓ Not enough pattern matches", 0
@@ -69,24 +83,35 @@ def predict_next_pattern(history):
     confidence = int((pattern_counts[prediction] / sum(pattern_counts.values())) * 100)
     return prediction, confidence
 
-# Prediction output
+# Prediction block
 if count >= 50:
     st.markdown("## 🧠 Prediction Mode")
     prediction, confidence = predict_next_pattern(st.session_state.history)
     st.success(f"🔮 Predicted: `{prediction}` ({confidence}% confidence)")
 
-# History and pie chart
+# History section
 if st.session_state.history:
-    st.markdown("## 🔂 Full History (latest at top)")
-    st.write(st.session_state.history[::-1])  # Reverse display
+    st.markdown("## 📚 History Data (latest at top)")
 
+    table_data = []
+    for idx, entry in enumerate(reversed(st.session_state.history), 1):
+        table_data.append({
+            "Sr. No.": idx,
+            "Period No.": entry["period"],
+            "Result": entry["result"]
+        })
+
+    st.dataframe(table_data, use_container_width=True)
+
+    # Pie chart
     fig, ax = plt.subplots()
-    counts = [st.session_state.history.count("Big"), st.session_state.history.count("Small")]
+    all_results = [entry["result"] for entry in st.session_state.history]
+    counts = [all_results.count("Big"), all_results.count("Small")]
     ax.pie(counts, labels=["Big", "Small"], autopct="%1.1f%%", startangle=90, colors=["red", "blue"])
     ax.axis("equal")
     st.pyplot(fig)
 
-# Safe rerun for reset history
+# Reset rerun trigger
 if st.session_state.get("_rerun_flag", False):
     st.session_state._rerun_flag = False
     st.experimental_rerun()
