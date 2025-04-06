@@ -3,21 +3,26 @@ import datetime
 import pytz
 import pandas as pd
 import matplotlib.pyplot as plt
+from streamlit_autorefresh import st_autorefresh
 
-# Setup page (must be first command)
+# Refresh every second
+st_autorefresh(interval=1000, key="refresh")
+
+# Page Config
 st.set_page_config(page_title="Frizo Predictor", layout="centered")
 
+# Title and Instructions
 st.title("🎯 Frizo Predictor")
 st.markdown("### 👇 Enter 50 rounds of results to unlock Prediction Mode")
 
-# Indian time sync
+# Time Sync - IST
 ist = pytz.timezone("Asia/Kolkata")
 now = datetime.datetime.now(ist)
 seconds_left = 60 - now.second
 st.subheader(f"🕒 IST: `{now.strftime('%H:%M:%S')}`")
 st.subheader(f"⏳ Next Round In: `{seconds_left}` seconds")
 
-# Session variables
+# Initialize session states
 if "history" not in st.session_state:
     st.session_state.history = []
 
@@ -33,17 +38,17 @@ if "prediction_stats" not in st.session_state:
 if "wrong_streak" not in st.session_state:
     st.session_state.wrong_streak = 0
 
-# Input starting period
+# Input Period
 with st.expander("🔢 Enter Last 3 Digits of Current Period"):
     last_digits = st.text_input("Only digits", max_chars=3, placeholder="e.g. 101")
     if last_digits.isdigit():
         st.session_state.current_period = int(last_digits)
 
-# Show current base period
+# Show current period
 if st.session_state.current_period is not None:
     st.markdown(f"### 📌 Current Base Period: `{st.session_state.current_period}`")
 
-# Add result logic
+# Add Result
 def add_result(result):
     if st.session_state.current_period is not None:
         period = st.session_state.current_period
@@ -52,6 +57,7 @@ def add_result(result):
             "result": result
         })
 
+        # Prediction check
         if st.session_state.last_prediction:
             predicted = st.session_state.last_prediction["value"]
             if predicted == result:
@@ -82,7 +88,7 @@ def predict(history):
     confidence = int((pattern_counts[best] / total) * 100)
     return best, confidence
 
-# Buttons
+# Action Buttons
 col1, col2, col3 = st.columns([1, 1, 2])
 with col1:
     if st.button("🔴 BIG"):
@@ -102,18 +108,11 @@ with col3:
 count = len(st.session_state.history)
 st.info(f"✅ Entries: `{count}` / 50")
 
-# Prediction
+# Prediction Output
 if count >= 50:
     st.markdown("## 🔮 Prediction")
     pred, conf = predict(st.session_state.history)
-
     if pred:
-        # Handle reversal prediction logic
-        if st.session_state.wrong_streak >= 3:
-            reversed_pred = "Small" if pred == "Big" else "Big"
-            st.warning(f"🧭 Reversal Detected — Predicting: `{reversed_pred}` instead of `{pred}`")
-            pred = reversed_pred
-
         st.success(f"📌 Predicted Next: `{pred}` with `{conf}%` confidence")
         st.session_state.last_prediction = {"value": pred, "confidence": conf}
     else:
