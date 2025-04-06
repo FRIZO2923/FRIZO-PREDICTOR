@@ -10,6 +10,32 @@ import time
 st.set_page_config(page_title="Frizo Predictor", layout="centered")
 
 st.title("🎯 Frizo Predictor")
+
+# 🔁 Referral Popup
+import random
+
+if "show_referral_message" not in st.session_state:
+    st.session_state.show_referral_message = True
+
+if st.session_state.show_referral_message:
+    with st.container():
+        color = random.choice(["green", "orange", "blue", "purple"])
+        st.markdown(
+            f"""
+            <div style="border: 2px solid {color}; padding: 15px; border-radius: 12px; background-color: #f9f9f9; text-align: center; font-size: 18px; animation: blinker 1.5s linear infinite;">
+                🤑 <strong>Get ₹100 Cashback</strong> on ₹300 Recharge!<br>
+                👉 Create a new account using our referral link for best prediction results.<br><br>
+                🔗 <a href="https://your-referral-link.com" target="_blank" style="text-decoration: none; color: {color}; font-weight: bold;">Click Here to Register Now</a>
+            </div>
+            <style>
+                @keyframes blinker {{
+                    50% {{ opacity: 0.6; }}
+                }}
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+
 st.markdown("### 👇 Enter 50 rounds of results to unlock Prediction Mode")
 
 # Indian time sync
