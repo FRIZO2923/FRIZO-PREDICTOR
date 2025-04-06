@@ -28,20 +28,23 @@ st.subheader(f"⏳ Next Round In: `{remaining}` seconds")
 # If timer hits zero
 if remaining == 0:
     st.success("🚨 NEW ROUND READY! Log your prediction now.")
+    
     if st.button("🔁 Restart Timer"):
         st.session_state.start_time = time.time()
-        st.experimental_rerun()
+        st.rerun()
 
     st.markdown("### Quick Log:")
     col1, col2 = st.columns(2)
     with col1:
         if st.button("🔴 BIG"):
             st.session_state.history.append("Big")
-            st.experimental_rerun()
+            st.session_state.start_time = time.time()
+            st.rerun()
     with col2:
         if st.button("🔵 SMALL"):
             st.session_state.history.append("Small")
-            st.experimental_rerun()
+            st.session_state.start_time = time.time()
+            st.rerun()
 
 # --- SHOW HISTORY ---
 if st.session_state.history:
@@ -60,6 +63,4 @@ if st.session_state.history:
     ax.axis("equal")
     st.pyplot(fig)
 
-# Auto-refresh the app every 1 sec to keep timer live
-st.experimental_rerun()
-time.sleep(1)
+# Refresh page every second to keep timer active
