@@ -39,11 +39,11 @@ with col3:
         st.session_state.start_time = time.time()
         st.rerun()
 
-with col4:
-    if st.button("🔄 Restart Data"):
-        st.session_state.history = []
-        st.session_state.start_time = time.time()
-        st.experimental_rerun()
+if st.button("🔄 Restart Data"):
+    st.session_state.history = []
+    st.session_state.start_time = time.time()
+    st.session_state._rerun_flag = True
+
 
 # Count tracker
 count = len(st.session_state.history)
@@ -84,3 +84,8 @@ if st.session_state.history:
 if remaining > 0:
     time.sleep(1)
     st.rerun()
+
+# Final safe rerun if flag was triggered
+if st.session_state.get("_rerun_flag", False):
+    st.session_state._rerun_flag = False
+    st.experimental_rerun()
