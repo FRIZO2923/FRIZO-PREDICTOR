@@ -11,36 +11,8 @@ st.set_page_config(page_title="Frizo Predictor", layout="centered")
 st.title("🎯 Frizo Predictor")
 st.markdown("### 👇 Enter 50 rounds of results to unlock Prediction Mode")
 
-# Custom CSS to add watermark in the background
-st.markdown(
-    """
-    <style>
-        .stApp {
-            background-image: url('frizo_watermark.png');
-            background-repeat: no-repeat;
-            background-size: 15%;  # Adjust size as needed
-            background-position: center center;
-            opacity: 0.1;  # Adjust opacity for visibility
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
 # Indian time sync
 ist = pytz.timezone("Asia/Kolkata")
-now = datetime.datetime.now(ist)
-seconds_left = 60 - now.second
-st.subheader(f"🕒 IST: `{now.strftime('%H:%M:%S')}`")
-
-# Display smooth timer countdown
-st.subheader(f"⏳ Next Round In: `{seconds_left}` seconds")
-# Display continuously updating timer
-while True:
-    now = datetime.datetime.now(ist)
-    seconds_left = 60 - now.second
-    st.subheader(f"⏳ Next Round In: `{seconds_left}` seconds")
-    time.sleep(1)  # Update every second
 
 # Session variables
 if "history" not in st.session_state:
@@ -107,6 +79,16 @@ def predict(history):
     confidence = int((pattern_counts[best] / total) * 100)
     return best, confidence
 
+# Timer Update
+def display_timer():
+    # Display smooth timer countdown
+    now = datetime.datetime.now(ist)
+    seconds_left = 60 - now.second
+    timer_placeholder.text(f"⏳ Next Round In: `{seconds_left}` seconds")
+
+# Creating the timer placeholder
+timer_placeholder = st.empty()
+
 # Buttons
 col1, col2, col3 = st.columns([1, 1, 2])
 with col1:
@@ -122,6 +104,9 @@ with col3:
         st.session_state.last_prediction = None
         st.session_state.prediction_stats = {"correct": 0, "total": 0}
         st.session_state.wrong_streak = 0
+
+# Timer Update
+display_timer()
 
 # Status
 count = len(st.session_state.history)
