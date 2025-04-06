@@ -149,13 +149,23 @@ if st.session_state.history:
     ax.axis("equal")
     st.pyplot(fig)
 
-    # Trend Line Graph
-    st.markdown("## 📈 Result Trend Over Time")
-    trend_df = pd.DataFrame(st.session_state.history)
+        # Trading Style Trend Chart
+    st.markdown("## 📊 Trading-style Trend Tracker")
+    trend_data = []
 
-    if not trend_df.empty:
-        trend_df["Value"] = trend_df["result"].apply(lambda x: 1 if x == "Big" else 0)
-        trend_df["Label"] = trend_df["result"]
-        trend_df = trend_df[::-1].reset_index(drop=True)
+    score = 0
+    for entry in reversed(st.session_state.history):  # Reverse to go from oldest to latest
+        if entry["result"] == "Big":
+            score += 1
+        else:
+            score -= 1
+        trend_data.append(score)
 
-        st.line_chart(trend_df["Value"])
+    trend_data.reverse()  # To make it time-sequential
+
+    trend_df = pd.DataFrame({
+        "Round": list(range(1, len(trend_data) + 1)),
+        "Trend": trend_data
+    })
+
+    st.line_chart(trend_df.set_index("Round"))
