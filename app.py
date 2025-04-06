@@ -19,6 +19,27 @@ remaining = max(0, TIMER_DURATION - int(elapsed))
 
 st.subheader(f"⏳ Next Round In: `{remaining}` seconds")
 
+# Buttons to log results (always visible)
+col1, col2, col3 = st.columns([1, 1, 2])
+with col1:
+    if st.button("🔴 BIG"):
+        st.session_state.history.append("Big")
+        st.session_state.start_time = time.time()
+        st.rerun()
+with col2:
+    if st.button("🔵 SMALL"):
+        st.session_state.history.append("Small")
+        st.session_state.start_time = time.time()
+        st.rerun()
+with col3:
+    if st.button("🔁 Restart Timer Only"):
+        st.session_state.start_time = time.time()
+        st.rerun()
+
+# Count tracker
+count = len(st.session_state.history)
+st.info(f"🧾 You’ve entered `{count}` / 50 patterns")
+
 # Prediction logic
 def predict_next_pattern(history):
     recent = history[-5:]
@@ -33,6 +54,24 @@ def predict_next_pattern(history):
     confidence = int((pattern_counts[prediction] / sum(pattern_counts.values())) * 100)
     return prediction, confidence
 
-# Add Big / Small buttons
-if remaining == 0:
-    st.success("🚨 NEW ROUND READY! Add result below:")
+# Prediction output
+if count >= 50:
+    st.markdown("## 🧠 Prediction Mode")
+    prediction, confidence = predict_next_pattern(st.session_state.history)
+    st.success(f"🔮 Predicted: `{prediction}` ({confidence}% confidence)")
+
+# History and Pie Chart
+if st.session_state.history:
+    st.markdown("## 🔂 History (last 20)")
+    st.write(st.session_state.history[-20:])
+
+    fig, ax = plt.subplots()
+    counts = [st.session_state.history.count("Big"), st.session_state.history.count("Small")]
+    ax.pie(counts, labels=["Big", "Small"], autopct="%1.1f%%", startangle=90, colors=["red", "blue"])
+    ax.axis("equal")
+    st.pyplot(fig)
+
+# Auto-refresh timer
+if remaining > 0:
+    time.sleep(1)
+    st.rerun()
