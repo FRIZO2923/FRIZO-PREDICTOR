@@ -35,16 +35,31 @@ if "show_referral_popup" not in st.session_state:
 
 import random
 
+import random
+import datetime
+
+# Initialize session state if not present
 if "show_referral_popup" not in st.session_state:
     st.session_state.show_referral_popup = True
 
-# Only show the popup if it hasn't been closed
+if "popup_last_closed" not in st.session_state:
+    st.session_state.popup_last_closed = None
+
+# Check time since last close
+if st.session_state.popup_last_closed:
+    time_diff = datetime.datetime.now() - st.session_state.popup_last_closed
+    if time_diff.total_seconds() > 300:  # 300 seconds = 5 minutes
+        st.session_state.show_referral_popup = True
+
+# Show popup if flag is True
 if st.session_state.show_referral_popup:
     with st.container():
         color = random.choice(["green", "orange", "blue", "purple"])
         st.markdown(
             f"""
-            <div style="border: 2px solid {color}; padding: 15px; border-radius: 12px; background-color: #fdf7e3; text-align: center; font-size: 18px; animation: blinker 1.5s linear infinite;">
+            <div style="border: 2px solid {color}; padding: 15px; border-radius: 12px;
+                        background-color: #fdf7e3; text-align: center; font-size: 18px;
+                        animation: blinker 1.5s linear infinite;">
                 🤑 <strong>Get ₹100 Cashback</strong> on ₹300 Recharge!<br>
                 👉 Create a new account using our referral link for best prediction results.<br><br>
                 🔗 <a href="https://www.bigdaddygame.net//#/register?invitationCode=Narn6464148"
@@ -59,6 +74,12 @@ if st.session_state.show_referral_popup:
             """,
             unsafe_allow_html=True
         )
+
+        # Close button
+        if st.button("❌ Close This Message"):
+            st.session_state.show_referral_popup = False
+            st.session_state.popup_last_closed = datetime.datetime.now()
+
 
         # Actual close button handled by Streamlit logic
         if st.button("❌ Close This Message"):
