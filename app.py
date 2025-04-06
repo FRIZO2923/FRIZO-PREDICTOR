@@ -38,7 +38,7 @@ with st.expander("🔢 Enter Last 3 Digits of Period Number (e.g. 101)"):
 if st.session_state.current_period is not None:
     st.markdown(f"### 📌 Starting From Period: `{st.session_state.current_period}` (descending)")
 
-# Time
+# India Time Display
 st.subheader(f"🕒 India Time: `{current_time.strftime('%H:%M:%S')}`")
 st.subheader(f"⏳ Next Round In: `{remaining}` seconds")
 
@@ -59,9 +59,7 @@ def predict_next_pattern(history):
     confidence = int((pattern_counts[prediction] / sum(pattern_counts.values())) * 100)
     return prediction, confidence
 
-# Buttons
-col1, col2, col3 = st.columns([1, 1, 2])
-
+# Helper
 def set_pending_result(result):
     if st.session_state.current_period is not None:
         st.session_state.pending_result = {
@@ -71,14 +69,21 @@ def set_pending_result(result):
         st.session_state.current_period -= 1
         st.rerun()
 
+# Keyboard listener
+key_input = st.text_input("🎮 Press 'B' for BIG or 'S' for SMALL", "", max_chars=1, label_visibility="collapsed")
+if key_input.upper() == "B":
+    set_pending_result("Big")
+elif key_input.upper() == "S":
+    set_pending_result("Small")
+
+# Manual Buttons
+col1, col2, col3 = st.columns([1, 1, 2])
 with col1:
     if st.button("🔴 BIG"):
         set_pending_result("Big")
-
 with col2:
     if st.button("🔵 SMALL"):
         set_pending_result("Small")
-
 with col3:
     if st.button("🧹 Reset History"):
         st.session_state.history = []
@@ -89,17 +94,16 @@ with col3:
         st.session_state.wrong_streak = 0
         st.rerun()
 
-# Store new result
+# Add result to history
 if st.session_state.pending_result:
     result_data = st.session_state.pending_result
     st.session_state.history.append(result_data)
 
-    # Check prediction accuracy
+    # Prediction feedback
     if st.session_state.last_prediction:
         predicted = st.session_state.last_prediction["value"]
         actual = result_data["result"]
         st.session_state.prediction_stats["total"] += 1
-
         if predicted == actual:
             st.session_state.prediction_stats["correct"] += 1
             st.session_state.wrong_streak = 0
@@ -113,7 +117,7 @@ if st.session_state.pending_result:
 count = len(st.session_state.history)
 st.info(f"🧾 You’ve entered `{count}` / 50 patterns")
 
-# Prediction Section
+# Prediction
 if count >= 50:
     st.markdown("## 🧠 Prediction Mode")
     prediction, confidence = predict_next_pattern(st.session_state.history)
@@ -123,7 +127,6 @@ if count >= 50:
     else:
         st.warning("⚠️ Not enough matching pattern found.")
 
-    # Accuracy tracking
     correct = st.session_state.prediction_stats["correct"]
     total = st.session_state.prediction_stats["total"]
     if total > 0:
@@ -135,7 +138,6 @@ if count >= 50:
 # History Table
 if st.session_state.history:
     st.markdown("## 📚 History Data (latest at top)")
-
     table_data = []
     for idx, entry in enumerate(reversed(st.session_state.history), 1):
         table_data.append({
@@ -143,10 +145,9 @@ if st.session_state.history:
             "Period No.": entry["period"],
             "Result": entry["result"]
         })
-
     st.dataframe(table_data, use_container_width=True)
 
-    # Pie Chart
+    # Pie chart
     fig, ax = plt.subplots()
     results = [entry["result"] for entry in st.session_state.history]
     counts = [results.count("Big"), results.count("Small")]
@@ -154,6 +155,6 @@ if st.session_state.history:
     ax.axis("equal")
     st.pyplot(fig)
 
-# Auto-refresh (every second)
+# Auto-refresh every 1 second to keep timer live
 time.sleep(1)
 st.rerun()
