@@ -215,8 +215,8 @@ st.markdown(
             YouTube @FrizoClips
         </a><br><br>
         📢 Join Telegram Channel: 
-        <a href='https://t.me/FrizoX10' target='_blank' style='text-decoration: none; color: blue; font-weight: bold;'>
-            @FrizoX10
+        <a href='https://t.me/FA_INVESTMENTS88' target='_blank' style='text-decoration: none; color: blue; font-weight: bold;'>
+            @FA_INVESTMENTS88
         </a><br><br>
         💸 Contact for Investments: <strong>x10 Returns Possible 💰</strong>
     </div>
