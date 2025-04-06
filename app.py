@@ -1,7 +1,6 @@
 import streamlit as st
 import time
 import matplotlib.pyplot as plt
-from collections import Counter
 
 st.set_page_config(page_title="Frizo Predictor", layout="centered")
 
@@ -20,10 +19,20 @@ remaining = max(0, TIMER_DURATION - int(elapsed))
 
 st.subheader(f"⏳ Next Round In: `{remaining}` seconds")
 
-# Prediction logic placeholder
+# Prediction logic
 def predict_next_pattern(history):
-    # Look at last 5 patterns
     recent = history[-5:]
-    # Count what came after similar patterns in past
     pattern_counts = {"Big": 0, "Small": 0}
-    for i in range(len(history
+    for i in range(len(history) - 5):
+        if history[i:i+5] == recent:
+            next_value = history[i+5]
+            pattern_counts[next_value] += 1
+    if sum(pattern_counts.values()) == 0:
+        return "❓ Not enough pattern matches", 0
+    prediction = max(pattern_counts, key=pattern_counts.get)
+    confidence = int((pattern_counts[prediction] / sum(pattern_counts.values())) * 100)
+    return prediction, confidence
+
+# Add Big / Small buttons
+if remaining == 0:
+    st.success("🚨 NEW ROUND READY! Add result below:")
