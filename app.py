@@ -204,22 +204,26 @@ if st.session_state.history:
 
     st.line_chart(trend_df.set_index("Round"))
 
-# Footer - Credit
-st.markdown(
-    "<hr style='margin-top: 50px;'><p style='text-align: center; font-size: 18px;'>🚀 Created by <strong>Frizo</strong></p>",
-    unsafe_allow_html=True
-)
-
-# Footer - Credit and YouTube Link
+# Footer - Credit, YouTube & Telegram
 st.markdown(
     """
     <hr style='margin-top: 50px;'>
     <div style='text-align: center; font-size: 18px;'>
-        🚀 Created by <strong>Frizo</strong><br>
+        🚀 Created by <strong>Frizo</strong><br><br>
         🎥 Watch on 
         <a href='https://www.youtube.com/@FrizoClips' target='_blank' style='text-decoration: none; color: red; font-weight: bold;'>
             YouTube @FrizoClips
-        </a>
+        </a><br><br>
+        📢 Join Telegram Channel: 
+        <a href='https://t.me/FrizoX10' target='_blank' style='text-decoration: none; color: blue; font-weight: bold;'>
+            @FrizoX10
+        </a><br><br>
+        💸 Contact for Investments: <strong>x10 Returns Possible 💰</strong>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
     </div>
     """,
     unsafe_allow_html=True
