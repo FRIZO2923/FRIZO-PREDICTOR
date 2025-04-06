@@ -3,15 +3,10 @@ import datetime
 import pytz
 import pandas as pd
 import matplotlib.pyplot as plt
-from streamlit_autorefresh import st_autorefresh
 
-# ✅ MUST be the first Streamlit command
+# Setup page (must be first command)
 st.set_page_config(page_title="Frizo Predictor", layout="centered")
 
-# ✅ Refresh the app every second to keep time synced
-st_autorefresh(interval=1000, key="refresh")
-
-# App title and description
 st.title("🎯 Frizo Predictor")
 st.markdown("### 👇 Enter 50 rounds of results to unlock Prediction Mode")
 
@@ -111,7 +106,14 @@ st.info(f"✅ Entries: `{count}` / 50")
 if count >= 50:
     st.markdown("## 🔮 Prediction")
     pred, conf = predict(st.session_state.history)
+
     if pred:
+        # Handle reversal prediction logic
+        if st.session_state.wrong_streak >= 3:
+            reversed_pred = "Small" if pred == "Big" else "Big"
+            st.warning(f"🧭 Reversal Detected — Predicting: `{reversed_pred}` instead of `{pred}`")
+            pred = reversed_pred
+
         st.success(f"📌 Predicted Next: `{pred}` with `{conf}%` confidence")
         st.session_state.last_prediction = {"value": pred, "confidence": conf}
     else:
