@@ -66,7 +66,7 @@ st.markdown(
 ist = pytz.timezone("Asia/Kolkata")
 now = datetime.datetime.now(ist)
 seconds_left = 60 - now.second
-st.subheader(f"🕒 IST 🇮🇳: `{now.strftime('%H:%M:%S')}`")
+st.subheader(f"🕒 IST : `{now.strftime('%H:%M:%S')}`")
 st.subheader(f"⏳ Next Round In: `{seconds_left}` seconds")
 
 # Timer placeholder
