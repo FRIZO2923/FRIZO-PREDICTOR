@@ -51,7 +51,16 @@ if st.session_state.show_referral_message:
 )
 
 
-st.markdown("### 👇 Enter 50 rounds of results to unlock Prediction Mode")
+st.markdown(
+    """
+    <div style='text-align: center; margin-top: 20px; margin-bottom: 20px;'>
+        <span style='font-size: 24px; font-weight: bold; color: #333;'>👇 Enter 50 rounds of results to unlock</span><br>
+        <span style='font-size: 26px; font-weight: bold; color: #007acc;'>🔐 Prediction Mode</span>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 
 # Indian time sync
 ist = pytz.timezone("Asia/Kolkata")
