@@ -1,4 +1,4 @@
-increase its size import streamlit as st
+import streamlit as st
 import datetime
 import pytz
 import pandas as pd
@@ -202,4 +202,4 @@ if st.session_state.history:
         "Trend": trend_data
     })
 
-    st.line_chart(trend_df.set_index("Round")) from this
+    st.line_chart(trend_df.set_index("Round"))
