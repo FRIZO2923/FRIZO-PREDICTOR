@@ -9,7 +9,7 @@ import time
 # Setup page (must be first command)
 st.set_page_config(page_title="Frizo Predictor", layout="centered")
 
-st.title("🎯 Frizo Predictor")
+st.title("🎯 FRIZO Predictor")
 
 # 🔁 Referral Popup
 import random
