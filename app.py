@@ -5,24 +5,24 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from streamlit_autorefresh import st_autorefresh
 
-# Refresh every second
-st_autorefresh(interval=1000, key="refresh")
-
-# Page Config
+# ✅ MUST be the first Streamlit command
 st.set_page_config(page_title="Frizo Predictor", layout="centered")
 
-# Title and Instructions
+# ✅ Refresh the app every second to keep time synced
+st_autorefresh(interval=1000, key="refresh")
+
+# App title and description
 st.title("🎯 Frizo Predictor")
 st.markdown("### 👇 Enter 50 rounds of results to unlock Prediction Mode")
 
-# Time Sync - IST
+# Indian time sync
 ist = pytz.timezone("Asia/Kolkata")
 now = datetime.datetime.now(ist)
 seconds_left = 60 - now.second
 st.subheader(f"🕒 IST: `{now.strftime('%H:%M:%S')}`")
 st.subheader(f"⏳ Next Round In: `{seconds_left}` seconds")
 
-# Initialize session states
+# Session variables
 if "history" not in st.session_state:
     st.session_state.history = []
 
@@ -38,17 +38,17 @@ if "prediction_stats" not in st.session_state:
 if "wrong_streak" not in st.session_state:
     st.session_state.wrong_streak = 0
 
-# Input Period
+# Input starting period
 with st.expander("🔢 Enter Last 3 Digits of Current Period"):
     last_digits = st.text_input("Only digits", max_chars=3, placeholder="e.g. 101")
     if last_digits.isdigit():
         st.session_state.current_period = int(last_digits)
 
-# Show current period
+# Show current base period
 if st.session_state.current_period is not None:
     st.markdown(f"### 📌 Current Base Period: `{st.session_state.current_period}`")
 
-# Add Result
+# Add result logic
 def add_result(result):
     if st.session_state.current_period is not None:
         period = st.session_state.current_period
@@ -57,7 +57,6 @@ def add_result(result):
             "result": result
         })
 
-        # Prediction check
         if st.session_state.last_prediction:
             predicted = st.session_state.last_prediction["value"]
             if predicted == result:
@@ -88,7 +87,7 @@ def predict(history):
     confidence = int((pattern_counts[best] / total) * 100)
     return best, confidence
 
-# Action Buttons
+# Buttons
 col1, col2, col3 = st.columns([1, 1, 2])
 with col1:
     if st.button("🔴 BIG"):
@@ -108,7 +107,7 @@ with col3:
 count = len(st.session_state.history)
 st.info(f"✅ Entries: `{count}` / 50")
 
-# Prediction Output
+# Prediction
 if count >= 50:
     st.markdown("## 🔮 Prediction")
     pred, conf = predict(st.session_state.history)
