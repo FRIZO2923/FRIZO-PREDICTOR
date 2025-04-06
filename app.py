@@ -5,11 +5,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from streamlit_autorefresh import st_autorefresh
 
-# 🔄 Smooth refresh every 1 second
+# ✅ MUST be the first Streamlit command
+st.set_page_config(page_title="Frizo Predictor", layout="centered")
+
+# ✅ Refresh the app every second to keep time synced
 st_autorefresh(interval=1000, key="refresh")
 
-# Setup page
-st.set_page_config(page_title="Frizo Predictor", layout="centered")
+# App title and description
 st.title("🎯 Frizo Predictor")
 st.markdown("### 👇 Enter 50 rounds of results to unlock Prediction Mode")
 
