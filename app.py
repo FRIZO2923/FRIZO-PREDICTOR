@@ -16,13 +16,13 @@ current_time = datetime.datetime.now(ist)
 seconds = current_time.second
 remaining = 60 - seconds
 
-# Session state initialization
+# Session state setup
 if "history" not in st.session_state:
     st.session_state.history = []
 if "current_period" not in st.session_state:
     st.session_state.current_period = None
 
-# Last 3 digits input
+# Input: Only 3 digits of last period number
 with st.expander("🔢 Enter Last 3 Digits of Period Number (e.g. 101)"):
     last_3 = st.text_input("Enter Last 3 Digits", placeholder="e.g. 101")
 
@@ -30,22 +30,23 @@ with st.expander("🔢 Enter Last 3 Digits of Period Number (e.g. 101)"):
         st.session_state.current_period = int(last_3)
 
 if st.session_state.current_period is not None:
-    st.markdown(f"### 📌 Starting From: `{st.session_state.current_period}` (will go down)")
+    st.markdown(f"### 📌 Starting From Period: `{st.session_state.current_period}` (descending)")
 
 # Time display
 st.subheader(f"🕒 India Time: `{current_time.strftime('%H:%M:%S')}`")
 st.subheader(f"⏳ Next Round In: `{remaining}` seconds")
 
-# Input buttons
+# Button actions
 col1, col2, col3 = st.columns([1, 1, 2])
 
 def add_result(result):
     if st.session_state.current_period is not None:
+        current = st.session_state.current_period
         st.session_state.history.append({
-            "period": st.session_state.current_period,
+            "period": current,
             "result": result
         })
-        st.session_state.current_period -= 1
+        st.session_state.current_period -= 1  # Decrease BEFORE rerun
         st.rerun()
 
 with col1:
@@ -62,7 +63,7 @@ with col3:
         st.session_state.current_period = None
         st.session_state._rerun_flag = True
 
-# Pattern tracker
+# Track pattern entry count
 count = len(st.session_state.history)
 st.info(f"🧾 You’ve entered `{count}` / 50 patterns")
 
@@ -81,7 +82,7 @@ def predict_next_pattern(history):
     confidence = int((pattern_counts[prediction] / sum(pattern_counts.values())) * 100)
     return prediction, confidence
 
-# Prediction
+# Show prediction if enough data
 if count >= 50:
     st.markdown("## 🧠 Prediction Mode")
     prediction, confidence = predict_next_pattern(st.session_state.history)
@@ -101,7 +102,7 @@ if st.session_state.history:
 
     st.dataframe(table_data, use_container_width=True)
 
-    # Pie chart
+    # Pie chart visualization
     fig, ax = plt.subplots()
     all_results = [entry["result"] for entry in st.session_state.history]
     counts = [all_results.count("Big"), all_results.count("Small")]
@@ -109,11 +110,11 @@ if st.session_state.history:
     ax.axis("equal")
     st.pyplot(fig)
 
-# Safe rerun on reset
+# Reset trigger
 if st.session_state.get("_rerun_flag", False):
     st.session_state._rerun_flag = False
     st.experimental_rerun()
 
-# Auto-refresh every second
+# Auto refresh every second
 time.sleep(1)
 st.rerun()
