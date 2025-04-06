@@ -31,20 +31,25 @@ if st.session_state.show_referral_message:
         color = random.choice(["green", "orange", "blue", "purple"])
     st.markdown(
     f"""
-    <div style="border: 2px solid {color}; padding: 15px; border-radius: 12px; background-color: #f9f9f9; text-align: center; font-size: 18px; animation: blinker 1.5s linear infinite; margin-bottom: 40px;">
+    <div style="border: 2px solid orange; padding: 15px; border-radius: 12px; background-color: #f9f9f9; 
+                text-align: center; font-size: 18px; animation: blinker 1.5s linear infinite; margin-bottom: 40px;">
+        🤑 <strong>Get ₹100 Cashback</strong> on ₹300 Recharge!<br>
+        👉 Create a new account using our referral link for best prediction results.<br><br>
+        🔗 <a href="https://www.bigdaddygame.net//#/register?invitationCode=Narn6464148" 
+              target="_blank" 
+              style="text-decoration: none; color: orange; font-weight: bold;">
+              Click Here to Register Now</a>
+    </div>
 
-              🤑 <strong>Get ₹100 Cashback</strong> on ₹300 Recharge!<br>
-             👉 Create a new account using our referral link for best prediction results.<br><br>
-               🔗 <a href="https://www.bigdaddygame.net//#/register?invitationCode=Narn6464148" target="_blank" style="text-decoration: none; color: {color}; font-weight: bold;">Click Here to Register Now</a>
-            </div>
-            <style>
-                @keyframes blinker {{
-                    50% {{ opacity: 0.6; }}
-                }}
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
+    <style>
+        @keyframes blinker {{
+            50% {{ opacity: 0.6; }}
+        }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 
 st.markdown("### 👇 Enter 50 rounds of results to unlock Prediction Mode")
 
