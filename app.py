@@ -3,7 +3,10 @@ import datetime
 import pytz
 import pandas as pd
 import matplotlib.pyplot as plt
-import time
+from streamlit_autorefresh import st_autorefresh
+
+# 🔄 Auto-refresh every second (1000 ms)
+st_autorefresh(interval=1000, key="refresh")
 
 # 📋 Setup page
 st.set_page_config(page_title="Frizo Predictor", layout="centered")
@@ -16,13 +19,6 @@ now = datetime.datetime.now(ist)
 seconds_left = 60 - now.second
 st.subheader(f"🕒 IST: `{now.strftime('%H:%M:%S')}`")
 st.subheader(f"⏳ Next Round In: `{seconds_left}` seconds")
-
-# ✅ Safe refresh without crashing
-if "last_refresh" not in st.session_state:
-    st.session_state.last_refresh = time.time()
-elif time.time() - st.session_state.last_refresh >= 1:
-    st.session_state.last_refresh = time.time()
-    st.experimental_rerun()
 
 # 🧠 Session State Initialization
 if "history" not in st.session_state:
