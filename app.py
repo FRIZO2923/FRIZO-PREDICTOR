@@ -43,7 +43,7 @@ with col4:
     if st.button("🔄 Restart Data"):
         st.session_state.history = []
         st.session_state.start_time = time.time()
-        st.rerun()
+        st.experimental_rerun()
 
 # Count tracker
 count = len(st.session_state.history)
@@ -71,8 +71,8 @@ if count >= 50:
 
 # History and Pie Chart
 if st.session_state.history:
-    st.markdown("## 🔂 History (last 20)")
-    st.write(st.session_state.history[-20:])
+    st.markdown("## 🔂 Full History (latest at top)")
+    st.write(st.session_state.history[::-1])  # Reversed order
 
     fig, ax = plt.subplots()
     counts = [st.session_state.history.count("Big"), st.session_state.history.count("Small")]
