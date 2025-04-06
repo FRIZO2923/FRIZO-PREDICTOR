@@ -15,7 +15,7 @@ st.set_page_config(page_title="Frizo Predictor", layout="centered")
 st.markdown(
     """
     <div style='text-align: center; font-size: 48px; font-weight: bold; padding: 20px 0; margin-bottom: 30px;'>
-        🎯 FRIZO Predictor
+        🎯 FRIZO PREDICTOR 😈
     </div>
     """,
     unsafe_allow_html=True
