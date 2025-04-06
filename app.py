@@ -3,6 +3,7 @@ import datetime
 import pytz
 import pandas as pd
 import matplotlib.pyplot as plt
+import time
 
 # Setup page (must be first command)
 st.set_page_config(page_title="Frizo Predictor", layout="centered")
@@ -10,12 +11,36 @@ st.set_page_config(page_title="Frizo Predictor", layout="centered")
 st.title("🎯 Frizo Predictor")
 st.markdown("### 👇 Enter 50 rounds of results to unlock Prediction Mode")
 
+# Custom CSS to add watermark in the background
+st.markdown(
+    """
+    <style>
+        .stApp {
+            background-image: url('frizo_watermark.png');
+            background-repeat: no-repeat;
+            background-size: 15%;  # Adjust size as needed
+            background-position: center center;
+            opacity: 0.1;  # Adjust opacity for visibility
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # Indian time sync
 ist = pytz.timezone("Asia/Kolkata")
 now = datetime.datetime.now(ist)
 seconds_left = 60 - now.second
 st.subheader(f"🕒 IST: `{now.strftime('%H:%M:%S')}`")
+
+# Display smooth timer countdown
 st.subheader(f"⏳ Next Round In: `{seconds_left}` seconds")
+# Display continuously updating timer
+while True:
+    now = datetime.datetime.now(ist)
+    seconds_left = 60 - now.second
+    st.subheader(f"⏳ Next Round In: `{seconds_left}` seconds")
+    time.sleep(1)  # Update every second
 
 # Session variables
 if "history" not in st.session_state:
@@ -148,24 +173,3 @@ if st.session_state.history:
     )
     ax.axis("equal")
     st.pyplot(fig)
-
-        # Trading Style Trend Chart
-    st.markdown("## 📊 Trading-style Trend Tracker")
-    trend_data = []
-
-    score = 0
-    for entry in reversed(st.session_state.history):  # Reverse to go from oldest to latest
-        if entry["result"] == "Big":
-            score += 1
-        else:
-            score -= 1
-        trend_data.append(score)
-
-    trend_data.reverse()  # To make it time-sequential
-
-    trend_df = pd.DataFrame({
-        "Round": list(range(1, len(trend_data) + 1)),
-        "Trend": trend_data
-    })
-
-    st.line_chart(trend_df.set_index("Round"))
