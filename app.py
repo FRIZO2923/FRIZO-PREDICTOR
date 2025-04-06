@@ -29,10 +29,10 @@ if "show_referral_message" not in st.session_state:
 if st.session_state.show_referral_message:
     with st.container():
         color = random.choice(["green", "orange", "blue", "purple"])
-       st.markdown(
+    st.markdown(
     f"""
     <div style="border: 2px solid {color}; padding: 15px; border-radius: 12px; background-color: #f9f9f9; text-align: center; font-size: 18px; animation: blinker 1.5s linear infinite; margin-bottom: 40px;">
-ze: 18px; animation: blinker 1.5s linear infinite;">
+
                 🤑 <strong>Get ₹100 Cashback</strong> on ₹300 Recharge!<br>
                 👉 Create a new account using our referral link for best prediction results.<br><br>
                 🔗 <a href="https://www.bigdaddygame.net//#/register?invitationCode=Narn6464148" target="_blank" style="text-decoration: none; color: {color}; font-weight: bold;">Click Here to Register Now</a>
