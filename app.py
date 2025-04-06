@@ -2,6 +2,7 @@ import streamlit as st
 import datetime
 import pytz
 import matplotlib.pyplot as plt
+import pandas as pd
 
 # Set page config
 st.set_page_config(page_title="Frizo Predictor", layout="centered")
@@ -27,7 +28,7 @@ if "prediction_stats" not in st.session_state:
 if "wrong_streak" not in st.session_state:
     st.session_state.wrong_streak = 0
 
-# Get period number (last 3 digits)
+# Input for last 3 digits of period number
 with st.expander("🔢 Enter Last 3 Digits of Period Number (e.g. 101)"):
     last_digits = st.text_input("Only digits", max_chars=3, placeholder="e.g. 101")
     if last_digits.isdigit():
@@ -54,7 +55,7 @@ def predict(history):
     confidence = int((pattern_counts[best] / total_matches) * 100)
     return best, confidence
 
-# Add result
+# Add result to history
 def add_result(result):
     if st.session_state.current_period is not None:
         st.session_state.history.append({
@@ -71,7 +72,7 @@ def add_result(result):
         st.session_state.current_period -= 1
         st.session_state.last_prediction = None
 
-# Add buttons
+# UI Buttons
 col1, col2, col3 = st.columns([1, 1, 2])
 with col1:
     if st.button("🔴 BIG"):
@@ -87,11 +88,11 @@ with col3:
         st.session_state.prediction_stats = {"correct": 0, "total": 0}
         st.session_state.wrong_streak = 0
 
-# Show progress
+# Data progress
 count = len(st.session_state.history)
 st.info(f"✅ Data Entered: `{count}` / 50")
 
-# Prediction after 50+
+# Prediction
 if count >= 50:
     st.markdown("## 🔮 Prediction")
     pred, conf = predict(st.session_state.history)
@@ -109,17 +110,14 @@ if count >= 50:
         if st.session_state.wrong_streak >= 3:
             st.error("⚠️ Trend Reversal Possible!")
 
-# Show history
+# Show history data
 if st.session_state.history:
     st.markdown("## 📚 History Data (Latest on Top)")
-    history_table = []
-    for i, entry in enumerate(reversed(st.session_state.history), start=1):
-        history_table.append({
-            "Sr. No.": i,
-            "Period No.": entry["period"],
-            "Result": entry["result"]
-        })
-    st.dataframe(history_table, use_container_width=True)
+    history_df = pd.DataFrame(reversed(st.session_state.history))
+    history_df.index = range(1, len(history_df) + 1)
+    history_df.index.name = "Sr. No."
+    history_df = history_df.rename(columns={"period": "Period No.", "result": "Result"})
+    st.dataframe(history_df, use_container_width=True)
 
     # Pie chart
     fig, ax = plt.subplots()
@@ -128,6 +126,3 @@ if st.session_state.history:
     ax.pie(counts, labels=["Big", "Small"], autopct="%1.1f%%", startangle=90, colors=["red", "blue"])
     ax.axis("equal")
     st.pyplot(fig)
-
-# Refresh manually
-st.button("🔄 Refresh Timer", on_click=st.experimental_rerun)
