@@ -10,8 +10,7 @@ import random
 # Setup page
 st.set_page_config(page_title="Frizo Predictor", layout="centered")
 
-# Title - centered and styled
-# Custom styled title with spacing below
+# Title
 st.markdown(
     """
     <div style='text-align: center; font-size: 48px; font-weight: bold; padding: 20px 0; margin-bottom: 30px;'>
@@ -21,72 +20,44 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-
-# 🔁 Referral Popup
-if "show_referral_message" not in st.session_state:
-    st.session_state.show_referral_message = True
-
-if st.session_state.show_referral_message:
-    with st.container():
-        color = random.choice(["green", "orange", "blue", "purple"])
-# Show popup only if not closed
-if "show_referral_popup" not in st.session_state:
-    st.session_state.show_referral_popup = True
-
-import random
-
-import random
-import datetime
-
-# Initialize session state if not present
+# Referral Popup
 if "show_referral_popup" not in st.session_state:
     st.session_state.show_referral_popup = True
 
 if "popup_last_closed" not in st.session_state:
     st.session_state.popup_last_closed = None
 
-# Check time since last close
 if st.session_state.popup_last_closed:
-    time_diff = datetime.datetime.now() - st.session_state.popup_last_closed
-    if time_diff.total_seconds() > 300:  # 300 seconds = 5 minutes
+    elapsed = datetime.datetime.now() - st.session_state.popup_last_closed
+    if elapsed.total_seconds() > 300:
         st.session_state.show_referral_popup = True
 
-# Show popup if flag is True
 if st.session_state.show_referral_popup:
-    with st.container():
-        color = random.choice(["green", "orange", "blue", "purple"])
-        st.markdown(
-            f"""
-            <div style="border: 2px solid {color}; padding: 15px; border-radius: 12px;
-                        background-color: #fdf7e3; text-align: center; font-size: 18px;
-                        animation: blinker 1.5s linear infinite;">
-                🤑 <strong>Get ₹100 Cashback</strong> on ₹300 Recharge!<br>
-                👉 Create a new account using our referral link for best prediction results.<br><br>
-                🔗 <a href="https://www.bigdaddygame.net//#/register?invitationCode=Narn6464148"
-                     target="_blank" style="text-decoration: none; color: {color}; font-weight: bold;">
-                     Click Here to Register Now</a>
-            </div>
-            <style>
-                @keyframes blinker {{
-                    50% {{ opacity: 0.6; }}
-                }}
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
+    color = random.choice(["green", "orange", "blue", "purple"])
+    st.markdown(
+        f"""
+        <div style="border: 2px solid {color}; padding: 15px; border-radius: 12px;
+                    background-color: #fdf7e3; text-align: center; font-size: 18px;
+                    animation: blinker 1.5s linear infinite; margin-top: 20px; margin-bottom: 20px;">
+            🤑 <strong>Get ₹100 Cashback</strong> on ₹300 Recharge!<br>
+            👉 Create a new account using our referral link for best prediction results.<br><br>
+            🔗 <a href="https://www.bigdaddygame.net//#/register?invitationCode=Narn6464148"
+                 target="_blank" style="text-decoration: none; color: {color}; font-weight: bold;">
+                 Click Here to Register Now</a>
+        </div>
+        <style>
+            @keyframes blinker {{
+                50% {{ opacity: 0.6; }}
+            }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+    if st.button("❌ Close This Message"):
+        st.session_state.show_referral_popup = False
+        st.session_state.popup_last_closed = datetime.datetime.now()
 
-        # Close button
-        if st.button("❌ Close This Message"):
-            st.session_state.show_referral_popup = False
-            st.session_state.popup_last_closed = datetime.datetime.now()
-
-
-        # Actual close button handled by Streamlit logic
-        if st.button("❌ Close This Message"):
-            st.session_state.show_referral_popup = False
-
-
-
+# Instruction Text
 st.markdown(
     """
     <div style='text-align: center; margin-top: 20px; margin-bottom: 20px;'>
@@ -97,7 +68,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-
 # Indian time sync
 ist = pytz.timezone("Asia/Kolkata")
 now = datetime.datetime.now(ist)
@@ -105,9 +75,8 @@ seconds_left = 60 - now.second
 st.subheader(f"🕒 IST : `{now.strftime('%H:%M:%S')}`")
 st.subheader(f"⏳ Next Round In: `{seconds_left}` seconds")
 
-# Timer placeholder
+# Timer
 timer_placeholder = st.empty()
-
 if "timer_seconds" not in st.session_state:
     st.session_state.timer_seconds = 60 - now.second
 
@@ -132,7 +101,7 @@ with col2:
     if st.button("🔄 Refresh Timer"):
         refresh_timer()
 
-# Session variables
+# Session State
 if "history" not in st.session_state:
     st.session_state.history = []
 if "current_period" not in st.session_state:
@@ -144,8 +113,8 @@ if "prediction_stats" not in st.session_state:
 if "wrong_streak" not in st.session_state:
     st.session_state.wrong_streak = 0
 
-# Input current period
-with st.expander("🔢 Enter Last 3 Digits of Current Period"):
+# Period Input
+with st.expander("🥡 Enter Last 3 Digits of Current Period"):
     last_digits = st.text_input("Only digits", max_chars=3, placeholder="e.g. 101")
     if last_digits.isdigit():
         st.session_state.current_period = int(last_digits)
@@ -212,7 +181,7 @@ if count >= 50:
     if pred:
         if st.session_state.wrong_streak >= 3:
             reversed_pred = "Small" if pred == "Big" else "Big"
-            st.warning(f"🧭 Reversal Detected — Predicting: `{reversed_pred}` instead of `{pred}`")
+            st.warning(f"🔭 Reversal Detected — Predicting: `{reversed_pred}` instead of `{pred}`")
             pred = reversed_pred
 
         st.success(f"📌 Predicted Next: `{pred}` with `{conf}%` confidence")
