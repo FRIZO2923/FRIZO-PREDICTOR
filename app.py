@@ -3,7 +3,6 @@ import datetime
 import pytz
 import pandas as pd
 import matplotlib.pyplot as plt
-import time
 import random
 
 # Setup page
@@ -56,7 +55,7 @@ if st.session_state.show_referral_popup:
         st.session_state.show_referral_popup = False
         st.session_state.popup_last_closed = datetime.datetime.now()
 
-# Instruction Text
+# Instruction
 st.markdown(
     """
     <div style='text-align: center; margin-top: 20px; margin-bottom: 20px;'>
@@ -67,17 +66,16 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Indian time sync
+# Indian Time Sync
 ist = pytz.timezone("Asia/Kolkata")
 now = datetime.datetime.now(ist)
 seconds_left = 60 - now.second
-st.subheader(f"🕒 IST : `{now.strftime('%H:%M:%S')}`")
-st.subheader(f"⏳ Next Round In: `{seconds_left}` seconds")
+st.subheader(f"🕒 IST : {now.strftime('%H:%M:%S')}")
+st.subheader(f"⏳ Next Round In: {seconds_left} seconds")
 
 # Timer
-timer_placeholder = st.empty()
 if "timer_seconds" not in st.session_state:
-    st.session_state.timer_seconds = 60 - now.second
+    st.session_state.timer_seconds = seconds_left
 
 def refresh_timer():
     now = datetime.datetime.now(ist)
@@ -85,12 +83,12 @@ def refresh_timer():
 
 col1, col2 = st.columns([4, 1])
 with col1:
-    timer_placeholder.text(f"🕐 60-Second Timer: `{st.session_state.timer_seconds}` seconds remaining")
+    st.text(f"🕐 60-Second Timer: {st.session_state.timer_seconds} seconds remaining")
 with col2:
     if st.button("🔄 Refresh Timer"):
         refresh_timer()
 
-# Session State
+# Session States
 if "history" not in st.session_state:
     st.session_state.history = []
 if "current_period" not in st.session_state:
@@ -104,13 +102,14 @@ if "wrong_streak" not in st.session_state:
 
 # Period Input
 with st.expander("🥡 Enter Last 3 Digits of Current Period"):
-    last_digits = st.text_input("Only digits", placeholder="e.g. 101")[:3]
+    last_digits = st.text_input("Only digits", max_chars=3, placeholder="e.g. 101")
     if last_digits.isdigit():
         st.session_state.current_period = int(last_digits)
 
 if st.session_state.current_period is not None:
     st.markdown(f"### 📌 Current Base Period: `{st.session_state.current_period}`")
 
+# Add Result
 def add_result(result):
     if st.session_state.current_period is not None:
         period = st.session_state.current_period
@@ -128,6 +127,7 @@ def add_result(result):
         st.session_state.current_period -= 1
         st.session_state.last_prediction = None
 
+# Pattern Prediction
 def predict(history):
     values = [entry["result"] for entry in history]
     if len(values) < 5:
@@ -145,6 +145,7 @@ def predict(history):
     confidence = int((pattern_counts[best] / total) * 100)
     return best, confidence
 
+# Action Buttons
 col1, col2, col3 = st.columns([1, 1, 2])
 with col1:
     if st.button("🔴 BIG"):
@@ -161,8 +162,9 @@ with col3:
         st.session_state.wrong_streak = 0
 
 count = len(st.session_state.history)
-st.info(f"✅ Entries: `{count}` / 50")
+st.info(f"✅ Entries: {count} / 50")
 
+# Prediction Mode
 if count >= 50:
     st.markdown("## 🔮 Prediction")
     pred, conf = predict(st.session_state.history)
@@ -170,10 +172,10 @@ if count >= 50:
     if pred:
         if st.session_state.wrong_streak >= 3:
             reversed_pred = "Small" if pred == "Big" else "Big"
-            st.warning(f"🔭 Reversal Detected — Predicting: `{reversed_pred}` instead of `{pred}`")
+            st.warning(f"🔭 Reversal Detected — Predicting: {reversed_pred} instead of {pred}")
             pred = reversed_pred
 
-        st.success(f"📌 Predicted Next: `{pred}` with `{conf}%` confidence")
+        st.success(f"📌 Predicted Next: {pred} with {conf}% confidence")
         st.session_state.last_prediction = {"value": pred, "confidence": conf}
     else:
         st.warning("⚠️ Not enough data")
@@ -182,10 +184,11 @@ if count >= 50:
     total = st.session_state.prediction_stats["total"]
     if total > 0:
         acc = int((correct / total) * 100)
-        st.markdown(f"🎯 Accuracy: `{correct}` / `{total}` → **{acc}%**")
+        st.markdown(f"🎯 Accuracy: {correct} / {total} → **{acc}%**")
         if st.session_state.wrong_streak >= 3:
             st.error("⚠️ Trend Reversal Suspected")
 
+# Show History Table
 if st.session_state.history:
     st.markdown("## 📚 History Data (Latest on Top)")
     history_df = pd.DataFrame(reversed(st.session_state.history))
@@ -202,7 +205,6 @@ if st.session_state.history:
     ], labels=["Big", "Small"], autopct="%1.1f%%", colors=["red", "blue"], startangle=90)
     ax.axis("equal")
     st.pyplot(fig)
-    plt.close(fig)
 
     st.markdown("## 📊 Trading-style Trend Tracker")
     trend_data = []
