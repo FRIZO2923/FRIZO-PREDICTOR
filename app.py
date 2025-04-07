@@ -3,7 +3,6 @@ import datetime
 import pytz
 import pandas as pd
 import matplotlib.pyplot as plt
-import threading
 import time
 import random
 
@@ -80,16 +79,6 @@ timer_placeholder = st.empty()
 if "timer_seconds" not in st.session_state:
     st.session_state.timer_seconds = 60 - now.second
 
-def countdown_timer():
-    while True:
-        now = datetime.datetime.now(ist)
-        st.session_state.timer_seconds = 60 - now.second
-        time.sleep(1)
-
-if "timer_thread" not in st.session_state:
-    st.session_state.timer_thread = threading.Thread(target=countdown_timer, daemon=True)
-    st.session_state.timer_thread.start()
-
 def refresh_timer():
     now = datetime.datetime.now(ist)
     st.session_state.timer_seconds = 60 - now.second
@@ -115,7 +104,7 @@ if "wrong_streak" not in st.session_state:
 
 # Period Input
 with st.expander("🥡 Enter Last 3 Digits of Current Period"):
-    last_digits = st.text_input("Only digits", max_chars=3, placeholder="e.g. 101")
+    last_digits = st.text_input("Only digits", placeholder="e.g. 101")[:3]
     if last_digits.isdigit():
         st.session_state.current_period = int(last_digits)
 
@@ -213,6 +202,7 @@ if st.session_state.history:
     ], labels=["Big", "Small"], autopct="%1.1f%%", colors=["red", "blue"], startangle=90)
     ax.axis("equal")
     st.pyplot(fig)
+    plt.close(fig)
 
     st.markdown("## 📊 Trading-style Trend Tracker")
     trend_data = []
